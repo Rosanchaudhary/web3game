@@ -245,14 +245,14 @@ useEffect(() => {
   if (!started) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
-        <h1 className="text-4xl font-extrabold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-extrabold mb-6 bg-linear-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
           Tetris Game
         </h1>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={startGame}
-          className="px-8 py-4 text-xl font-semibold bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl shadow-lg hover:scale-105 transition-transform"
+          className="px-8 py-4 text-xl font-semibold bg-linear-to-r from-cyan-500 to-blue-500 rounded-xl shadow-lg hover:scale-105 transition-transform"
         >
           ▶ Play
         </motion.button>
@@ -262,13 +262,13 @@ useEffect(() => {
 
   // ---------------- GAME SCREEN ----------------
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-black via-gray-900 to-black text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-tr from-cyan-900/20 to-blue-900/10 blur-3xl -z-10" />
+    <main className="min-h-screen flex flex-col items-center justify-center bg-linear-to-b from-black via-gray-900 to-black text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-linear-to-tr from-cyan-900/20 to-blue-900/10 blur-3xl -z-10" />
 
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-3xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-blue-400 text-transparent bg-clip-text"
+        className="text-3xl font-bold mb-4 bg-linear-to-r from-cyan-400 to-blue-400 text-transparent bg-clip-text"
       >
         Tetris Game
       </motion.h1>
@@ -279,7 +279,7 @@ useEffect(() => {
 
       {/* Grid */}
       <div
-        className="grid gap-[2px] bg-gray-800 p-2 rounded-lg border border-gray-700"
+        className="grid gap-0.5 bg-gray-800 p-2 rounded-lg border border-gray-700"
         style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}
       >
         {renderGrid().map((row, i) =>
@@ -305,7 +305,7 @@ useEffect(() => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={startGame}
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-2 rounded-full font-semibold"
+            className="bg-linear-to-r from-cyan-600 to-blue-600 px-6 py-2 rounded-full font-semibold"
           >
             Play Again
           </motion.button>

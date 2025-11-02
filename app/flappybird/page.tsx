@@ -127,17 +127,17 @@ export default function FlappyBirdGame() {
   }, [started, gameOver]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-sky-900 via-sky-950 to-black text-white overflow-hidden">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-linear-to-b from-sky-900 via-sky-950 to-black text-white overflow-hidden">
       {!started ? (
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-6 bg-gradient-to-r from-yellow-400 to-orange-500 text-transparent bg-clip-text">
+          <h1 className="text-4xl font-bold mb-6 bg-linear-to-r from-yellow-400 to-orange-500 text-transparent bg-clip-text">
             Flappy Bird 🐥
           </h1>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={startGame}
-            className="px-8 py-4 text-xl font-semibold bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl shadow-lg"
+            className="px-8 py-4 text-xl font-semibold bg-linear-to-r from-yellow-400 to-orange-500 rounded-xl shadow-lg"
           >
             ▶ Start
           </motion.button>
@@ -155,7 +155,7 @@ export default function FlappyBirdGame() {
             {/* Bird */}
             <motion.div
               animate={{ y: birdY }}
-              className="absolute left-[100px] w-[34px] h-[24px] bg-yellow-400 rounded-full border border-yellow-200"
+              className="absolute left-[100px] w-[34px] h-6 bg-yellow-400 rounded-full border border-yellow-200"
             />
 
             {/* Pipes */}
@@ -199,7 +199,7 @@ export default function FlappyBirdGame() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={startGame}
-                className="bg-gradient-to-r from-yellow-400 to-orange-500 px-6 py-2 rounded-full font-semibold"
+                className="bg-linear-to-r from-yellow-400 to-orange-500 px-6 py-2 rounded-full font-semibold"
               >
                 Play Again
               </motion.button>
