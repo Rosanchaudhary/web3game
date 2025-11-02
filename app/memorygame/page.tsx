@@ -13,7 +13,7 @@ export default function MemoryGame() {
     return pairs.sort(() => Math.random() - 0.5);
   };
 
-  const [started, setStarted] = useState(false); // 👈 new
+  const [started, setStarted] = useState(false); 
   const [grid, setGrid] = useState<string[]>([]);
   const [flipped, setFlipped] = useState<number[]>([]);
   const [matched, setMatched] = useState<boolean[]>(Array(16).fill(false));
@@ -86,7 +86,7 @@ export default function MemoryGame() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
         <h1 className="text-4xl font-extrabold mb-6 bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-          🧠 Memory Game
+          Memory Game
         </h1>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -179,7 +179,7 @@ export default function MemoryGame() {
           className="mt-10 text-center"
         >
           <p className="text-3xl font-bold bg-linear-to-r from-green-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent mb-4 animate-pulse">
-            🎉 You matched all emojis in {turns} turns!
+            You matched all emojis in {turns} turns!
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}

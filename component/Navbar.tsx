@@ -10,14 +10,21 @@ export default function Navbar() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 w-full backdrop-blur-md bg-black/30 border-b border-white/10 shadow-lg"
+      className="
+        absolute top-0 left-0 z-50 w-full
+        backdrop-blur-md bg-black/30 border-b border-white/10 shadow-lg
+      "
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+      <div className=" w-full mx-auto flex items-center justify-between px-4 py-4">
         {/* Brand / Title */}
         <Link href="/" className="group flex items-center space-x-2">
           <motion.h1
             whileHover={{ scale: 1.05 }}
-            className="text-2xl font-extrabold bg-linear-to-r from-indigo-400 to-purple-400 text-transparent bg-clip-text tracking-wide"
+            className="
+              text-2xl font-extrabold
+              bg-linear-to-r from-indigo-400 to-purple-400
+              text-transparent bg-clip-text tracking-wide
+            "
           >
             Bet Games
           </motion.h1>

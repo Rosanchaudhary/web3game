@@ -2,12 +2,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-const GRID_SIZE = 8;
+const GRID_SIZE = 6;
 const TOTAL_CELLS = GRID_SIZE * GRID_SIZE;
 
 const getRandomCell = () => Math.floor(Math.random() * TOTAL_CELLS);
 
-export default function Simon8x8() {
+export default function Simon() {
   const [started, setStarted] = useState(false); 
   const [sequence, setSequence] = useState<number[]>([]);
   const [playerMoves, setPlayerMoves] = useState<number[]>([]);
@@ -78,8 +78,9 @@ export default function Simon8x8() {
   if (!started) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-black text-white">
+        
         <h1 className="text-4xl font-extrabold mb-6 bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-          8×8 Simon Game
+          Simon Game
         </h1>
         <button
           onClick={() => setStarted(true)}
@@ -98,7 +99,7 @@ export default function Simon8x8() {
 
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-extrabold bg-linear-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent drop-shadow-lg">
-          8×8 Simon Game
+          Simon Game
         </h1>
         <p className="text-gray-300 mt-2 text-lg">
           Follow the sequence, test your memory, and climb the leaderboard.

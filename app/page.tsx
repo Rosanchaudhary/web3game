@@ -27,7 +27,7 @@ const games = [
 
 export default function Home() {
   return (
-    <div className="relative flex flex-col items-center text-center px-6 py-16 overflow-hidden">
+    <div className="relative pt-20 flex flex-col items-center text-center px-6 py-16 overflow-hidden">
       {/* Gradient background effects */}
       <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-indigo-900/40 via-black/80 to-black -z-10" />
       <div className="absolute -top-40 right-40 w-[400px] h-[400px] bg-indigo-500/30 rounded-full blur-3xl -z-10" />
