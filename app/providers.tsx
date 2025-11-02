@@ -1,3 +1,4 @@
+//app/provider.tsx
 "use client";
 
 import { WagmiProvider } from 'wagmi'
@@ -6,7 +7,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { http, createConfig } from 'wagmi'
+
 import { mainnet, polygon } from 'wagmi/chains'
 
 const config = getDefaultConfig({

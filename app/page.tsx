@@ -1,158 +1,86 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useAccount } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+"use client";
 
-const emojiSet = ['🐶', '🐱', '🐸', '🐵', '🐼', '🦊', '🐯', '🐰'];
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Gamepad2, Brain, Sparkles } from "lucide-react";
 
-export default function MemoryGame() {
-  const { address } = useAccount();
+const games = [
+  {
+    title: "Memory Game",
+    description: "Flip cards, match pairs, and win ETH rewards.",
+    route: "/memorygame",
+    icon: Brain,
+  },
+  {
+    title: "Simon Arcade",
+    description: "Repeat the sequence and test your reflexes for on-chain prizes.",
+    route: "/simon",
+    icon: Gamepad2,
+  },
+];
 
-  const generateGrid = () => {
-    const pairs = [...emojiSet, ...emojiSet];
-    return pairs.sort(() => Math.random() - 0.5);
-  };
-
-  const [grid, setGrid] = useState<string[]>([]);
-  const [flipped, setFlipped] = useState<number[]>([]);
-  const [matched, setMatched] = useState<boolean[]>(Array(16).fill(false));
-  const [turns, setTurns] = useState(0);
-  const [disabled, setDisabled] = useState(false);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setGrid(generateGrid());
-  }, []);
-
-  const handleFlip = (index: number) => {
-    if (disabled || matched[index] || flipped.includes(index)) return;
-    setFlipped((prev) => [...prev, index]);
-  };
-
-  useEffect(() => {
-    if (flipped.length === 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDisabled(true);
-      const [first, second] = flipped;
-      if (grid[first] === grid[second]) {
-        setMatched((prev) => {
-          const newMatched = [...prev];
-          newMatched[first] = true;
-          newMatched[second] = true;
-          return newMatched;
-        });
-      }
-      setTimeout(() => {
-        setFlipped([]);
-        setDisabled(false);
-        setTurns((t) => t + 1);
-      }, 900);
-    }
-  }, [flipped, grid]);
-
-  const resetGame = () => {
-    setGrid(generateGrid());
-    setMatched(Array(16).fill(false));
-    setFlipped([]);
-    setTurns(0);
-    setDisabled(false);
-  };
-
-  const allMatched = matched.every(Boolean);
-
-  // Save score on completion
-  useEffect(() => {
-    if (allMatched && address) {
-      fetch('/api/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address, turns }),
-      });
-    }
-  }, [allMatched, address, turns]);
-
-  if (grid.length === 0) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        Loading...
-      </main>
-    );
-  }
-
+export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-6">
-      <div className="flex justify-between w-full max-w-md mb-6">
-        <h1 className="text-3xl font-bold">🧠 Memory Game</h1>
-        <ConnectButton />
-      </div>
+    <div className="relative flex flex-col items-center text-center px-6 py-16 overflow-hidden">
+      {/* Gradient background effects */}
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-indigo-900/40 via-black/80 to-black -z-10" />
+      <div className="absolute -top-40 right-40 w-[400px] h-[400px] bg-indigo-500/30 rounded-full blur-3xl -z-10" />
+      <div className="absolute -bottom-40 left-40 w-[400px] h-[400px] bg-purple-500/30 rounded-full blur-3xl -z-10" />
 
-      <p className="mb-6 text-lg">Turns: {turns}</p>
+      {/* Hero Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
+        className="max-w-3xl"
+      >
+        <h1 className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 text-transparent bg-clip-text mb-6">
+          Bet Games 🎮
+        </h1>
+        <p className="text-gray-300 text-lg leading-relaxed mb-10">
+          Play. Bet. Win. Connect your MetaMask wallet and compete in fun, on-chain games using Ether.
+          Earn rewards, prove your skill, and climb the leaderboard in our Web3 arcade.
+        </p>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="inline-block px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-indigo-500/30 transition"
+        >
+          <Link href="#games">Explore Games ↓</Link>
+        </motion.div>
+      </motion.section>
 
-      <div className="grid grid-cols-4 gap-4">
-        {grid.map((emoji, index) => {
-          const isFlipped = flipped.includes(index) || matched[index];
+      {/* Games Section */}
+      <section id="games" className="mt-20 grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-5xl">
+        {games.map((game, i) => {
+          const Icon = game.icon;
           return (
             <motion.div
-              key={index}
-              className="w-20 h-20 perspective"
-              onClick={() => handleFlip(index)}
+              key={game.route}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.2 }}
+              whileHover={{ scale: 1.05 }}
+              className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-left text-gray-100 shadow-lg hover:border-indigo-500/50 transition"
             >
-              <motion.div
-                className="relative w-full h-full cursor-pointer"
-                animate={{ rotateY: isFlipped ? 180 : 0 }}
-                transition={{ duration: 0.4 }}
-                style={{ transformStyle: 'preserve-3d' }}
+              <Icon className="w-10 h-10 mb-3 text-indigo-400" />
+              <h2 className="text-2xl font-semibold mb-2">{game.title}</h2>
+              <p className="text-gray-300 mb-4">{game.description}</p>
+              <Link
+                href={game.route}
+                className="text-indigo-400 font-medium hover:text-indigo-300 transition"
               >
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-700 rounded-xl backface-hidden">
-                  ❓
-                </div>
-
-                <div
-                  className="absolute inset-0 flex items-center justify-center text-3xl bg-green-600 rounded-xl backface-hidden"
-                  style={{ transform: 'rotateY(180deg)' }}
-                >
-                  {emoji}
-                </div>
-              </motion.div>
+                Play Now →
+              </Link>
             </motion.div>
           );
         })}
-      </div>
+      </section>
 
-      {allMatched && (
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-8 text-center"
-        >
-          <p className="text-2xl mb-4">🎉 You matched all emojis in {turns} turns!</p>
-          <button
-            onClick={resetGame}
-            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg font-semibold"
-          >
-            Play Again
-          </button>
-        </motion.div>
-      )}
-
-      {!allMatched && (
-        <button
-          onClick={resetGame}
-          className="mt-8 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg font-medium"
-        >
-          Reset Game
-        </button>
-      )}
-
-      <a
-        href="/leaderboard"
-        className="mt-6 underline text-blue-400 hover:text-blue-300"
-      >
-        View Leaderboard →
-      </a>
-    </main>
+      {/* Footer */}
+      <footer className="mt-24 text-gray-500 text-sm">
+        Built with ❤️ by <span className="text-indigo-400">Bet Games</span> team
+      </footer>
+    </div>
   );
 }
-
-
