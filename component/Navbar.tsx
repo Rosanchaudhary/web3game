@@ -17,7 +17,7 @@ export default function Navbar() {
         <Link href="/" className="group flex items-center space-x-2">
           <motion.h1
             whileHover={{ scale: 1.05 }}
-            className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 text-transparent bg-clip-text tracking-wide"
+            className="text-2xl font-extrabold bg-linear-to-r from-indigo-400 to-purple-400 text-transparent bg-clip-text tracking-wide"
           >
             Bet Games
           </motion.h1>
@@ -37,7 +37,7 @@ export default function Navbar() {
       </div>
 
       {/* Optional subtle glow line */}
-      <div className="h-[2px] w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-30" />
+      <div className="h-0.5 w-full bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-30" />
     </motion.nav>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Gamepad2, Brain, Sparkles } from "lucide-react";
+import { Gamepad2, Brain } from "lucide-react";
 
 const games = [
   {
@@ -17,13 +17,19 @@ const games = [
     route: "/simon",
     icon: Gamepad2,
   },
+    {
+    title: "Snake",
+    description: "Arcade Snake",
+    route: "/snake",
+    icon: Gamepad2,
+  },
 ];
 
 export default function Home() {
   return (
     <div className="relative flex flex-col items-center text-center px-6 py-16 overflow-hidden">
       {/* Gradient background effects */}
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-indigo-900/40 via-black/80 to-black -z-10" />
+      <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-indigo-900/40 via-black/80 to-black -z-10" />
       <div className="absolute -top-40 right-40 w-[400px] h-[400px] bg-indigo-500/30 rounded-full blur-3xl -z-10" />
       <div className="absolute -bottom-40 left-40 w-[400px] h-[400px] bg-purple-500/30 rounded-full blur-3xl -z-10" />
 
@@ -34,7 +40,7 @@ export default function Home() {
         transition={{ duration: 0.7 }}
         className="max-w-3xl"
       >
-        <h1 className="text-5xl sm:text-6xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 text-transparent bg-clip-text mb-6">
+        <h1 className="text-5xl sm:text-6xl font-extrabold bg-linear-to-r from-indigo-400 to-purple-400 text-transparent bg-clip-text mb-6">
           Bet Games 🎮
         </h1>
         <p className="text-gray-300 text-lg leading-relaxed mb-10">
@@ -44,7 +50,7 @@ export default function Home() {
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="inline-block px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-indigo-500/30 transition"
+          className="inline-block px-8 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-indigo-500/30 transition"
         >
           <Link href="#games">Explore Games ↓</Link>
         </motion.div>
