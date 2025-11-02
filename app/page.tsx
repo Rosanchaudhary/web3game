@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Gamepad2, Brain } from "lucide-react";
+import { Brain, Gamepad2, Blocks, Bird } from "lucide-react";
 
 const games = [
   {
@@ -17,13 +17,26 @@ const games = [
     route: "/simon",
     icon: Gamepad2,
   },
-    {
+  {
     title: "Snake",
     description: "Arcade Snake",
     route: "/snake",
     icon: Gamepad2,
   },
+  {
+    title: "Tetris",
+    description: "Stack blocks, clear lines, and climb the leaderboard.",
+    route: "/tetris",
+    icon: Blocks, // ⬜ classic Tetris vibe
+  },
+  {
+    title: "Flappy Bird",
+    description: "Tap to fly and dodge pipes in this addictive classic.",
+    route: "/flappybird",
+    icon: Bird, // 🐥 simple, clean bird icon
+  },
 ];
+
 
 export default function Home() {
   return (
