@@ -1,34 +1,8 @@
 "use client";
 
+import { Player, Tile } from "@/types/mario";
+import { tiles } from "@/utils/mario";
 import { useEffect, useRef } from "react";
-
-interface Tile {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  color: string;
-  type: "normal" | "hazard" | "coin" | "goal" | "decoration" | "movingHazard";
-  // movement properties for moving hazards
-  startY?: number;
-  endY?: number;
-  speedY?: number;
-  direction?: number;
-}
-
-interface Player {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  vx: number;
-  vy: number;
-  onGround: boolean;
-  lives: number;
-  coins: number;
-  invincible: boolean;
-  invincibleTimer: number;
-}
 
 type GameState = "start" | "playing" | "paused" | "won" | "gameover";
 
@@ -49,12 +23,21 @@ export default function Platformer() {
       height: 40,
       vx: 0,
       vy: 0,
+      imageSrc: "/player/Idle (1).png",
       onGround: false,
       lives: 3,
       coins: 0,
       invincible: false,
       invincibleTimer: 0,
+      direction: "right" as "left" | "right",
+      state: "idle" as "idle" | "walk" | "jump" | "fall",
     };
+
+    if (player.imageSrc) {
+      const playerImage = new Image();
+      playerImage.src = player.imageSrc;
+      player.image = playerImage;
+    }
 
     // ⚙️ Physics
     const gravity = 0.25;
@@ -65,254 +48,13 @@ export default function Platformer() {
     let cameraX = 0;
     let gameState: GameState = "start";
 
-    // 🧱 Level layout (reuse your older tiles + add new types)
-    const tiles: Tile[] = [
-
-      { x: 0, y: 460, width: 400, height: 40, color: "green", type: "normal" },
-      {
-        x: 500,
-        y: 460,
-        width: 300,
-        height: 40,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 900,
-        y: 460,
-        width: 300,
-        height: 40,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 1300,
-        y: 460,
-        width: 400,
-        height: 40,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 1800,
-        y: 460,
-        width: 400,
-        height: 40,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 2300,
-        y: 460,
-        width: 400,
-        height: 40,
-        color: "green",
-        type: "normal",
-      },
-
-      // 🔥 Hazards (lava pits between gaps)
-      { x: 400, y: 460, width: 100, height: 40, color: "red", type: "hazard" },
-      { x: 800, y: 460, width: 100, height: 40, color: "red", type: "hazard" },
-      { x: 1200, y: 460, width: 100, height: 40, color: "red", type: "hazard" },
-      { x: 2200, y: 460, width: 100, height: 40, color: "red", type: "hazard" },
-
-      // 🪜 Platforms (ascending path)
-      {
-        x: 300,
-        y: 400,
-        width: 100,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 500,
-        y: 350,
-        width: 100,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 700,
-        y: 300,
-        width: 100,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 950,
-        y: 250,
-        width: 120,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 1150,
-        y: 200,
-        width: 120,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 1350,
-        y: 250,
-        width: 120,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 1550,
-        y: 300,
-        width: 120,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 1750,
-        y: 350,
-        width: 120,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-
-      // ⚠️ Upper hazards (danger platforms)
-      { x: 1050, y: 230, width: 60, height: 20, color: "red", type: "hazard" },
-      { x: 1500, y: 320, width: 60, height: 20, color: "red", type: "hazard" },
-
-      // 💰 Coin trails on platforms
-      { x: 320, y: 360, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 520, y: 310, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 720, y: 260, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 970, y: 210, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 1170, y: 160, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 1370, y: 210, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 1570, y: 260, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 1770, y: 310, width: 20, height: 20, color: "yellow", type: "coin" },
-
-      // 💰 Ground coins for exploration
-      { x: 200, y: 420, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 600, y: 420, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 1000, y: 420, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 1400, y: 420, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 1900, y: 420, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 2400, y: 420, width: 20, height: 20, color: "yellow", type: "coin" },
-
-      // 🧗 Secret high path (reward area)
-      {
-        x: 1850,
-        y: 200,
-        width: 100,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 2050,
-        y: 150,
-        width: 100,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      {
-        x: 2250,
-        y: 100,
-        width: 100,
-        height: 20,
-        color: "green",
-        type: "normal",
-      },
-      { x: 2270, y: 60, width: 20, height: 20, color: "yellow", type: "coin" },
-      { x: 2290, y: 60, width: 20, height: 20, color: "yellow", type: "coin" },
-
-      // 🏁 Goal tile (reachable end)
-      { x: 2600, y: 420, width: 60, height: 40, color: "purple", type: "goal" },
-
-      // ☁️ Decorative tiles (no collision)
-      {
-        x: 200,
-        y: 150,
-        width: 100,
-        height: 40,
-        color: "white",
-        type: "decoration",
-      },
-      {
-        x: 600,
-        y: 120,
-        width: 150,
-        height: 50,
-        color: "white",
-        type: "decoration",
-      },
-      {
-        x: 1000,
-        y: 180,
-        width: 120,
-        height: 40,
-        color: "white",
-        type: "decoration",
-      },
-      {
-        x: 1600,
-        y: 130,
-        width: 180,
-        height: 60,
-        color: "white",
-        type: "decoration",
-      },
-
-      // 🌳 Tree decorations
-      {
-        x: 400,
-        y: 360,
-        width: 30,
-        height: 100,
-        color: "#8B5A2B",
-        type: "decoration",
-      },
-      {
-        x: 385,
-        y: 310,
-        width: 60,
-        height: 60,
-        color: "green",
-        type: "decoration",
-      },
-
-      // ⚙️ Moving hazard tiles
-      {
-        x: 900,
-        y: 420,
-        width: 30,
-        height: 30,
-        color: "red",
-        type: "movingHazard",
-        startY: 420,
-        endY: 300,
-        speedY: 1.5,
-        direction: -1,
-      },
-      {
-        x: 1300,
-        y: 440,
-        width: 30,
-        height: 30,
-        color: "red",
-        type: "movingHazard",
-        startY: 440,
-        endY: 280,
-        speedY: 2,
-        direction: -1,
-      },
-    ];
+    for (const t of tiles) {
+      if (t.imageSrc) {
+        const img = new Image();
+        img.src = t.imageSrc;
+        t.image = img;
+      }
+    }
 
     // 🎮 Input
     const keys: Record<string, boolean> = {};
@@ -392,8 +134,14 @@ export default function Platformer() {
     function update(delta: number) {
       // Movement
       player.vx = 0;
-      if (keys["ArrowLeft"] || keys["a"]) player.vx = -moveSpeed;
-      if (keys["ArrowRight"] || keys["d"]) player.vx = moveSpeed;
+      if (keys["ArrowLeft"] || keys["a"]) {
+        player.vx = -moveSpeed;
+        player.direction = "left";
+      }
+      if (keys["ArrowRight"] || keys["d"]) {
+        player.vx = moveSpeed;
+        player.direction = "right";
+      }
 
       // Jump buffer
       if (keys[" "] || keys["ArrowUp"] || keys["w"]) jumpBuffer = 10;
@@ -474,6 +222,15 @@ export default function Platformer() {
         }
       }
 
+      // State update
+      if (!player.onGround) {
+        player.state = player.vy < 0 ? "jump" : "fall";
+      } else if (player.vx !== 0) {
+        player.state = "walk";
+      } else {
+        player.state = "idle";
+      }
+
       // Fall off
       if (player.y > height + 200 && !player.invincible) respawnNear(player.x);
 
@@ -484,6 +241,7 @@ export default function Platformer() {
     }
 
     function draw() {
+     // console.log(player.state)
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "#b3e5fc";
       ctx.fillRect(0, 0, width, height);
@@ -491,42 +249,51 @@ export default function Platformer() {
       // Draw tiles (decorations first, then others)
       for (const t of tiles) {
         if (t.type === "decoration") {
-          ctx.fillStyle = t.color;
-          ctx.globalAlpha = 0.7;
-          ctx.fillRect(t.x - cameraX, t.y, t.width, t.height);
-          ctx.globalAlpha = 1;
+          // 🖼️ If this decoration has a loaded image, draw it
+          if (t.image && t.image.complete) {
+            ctx.drawImage(t.image, t.x - cameraX, t.y, t.width, t.height);
+          }
           continue;
         }
 
-        ctx.fillStyle = t.color;
-        ctx.fillRect(t.x - cameraX, t.y, t.width, t.height);
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(t.x - cameraX, t.y, t.width, t.height);
+        // ✳️ Normal tiles
+        if (t.image && t.image.complete) {
+          ctx.drawImage(t.image, t.x - cameraX, t.y, t.width, t.height);
+        }
       }
 
-      // Player
+      // 🧍 Player render
       if (gameState !== "start" && gameState !== "gameover") {
         if (
           !player.invincible ||
           Math.floor(performance.now() / 100) % 2 === 0
         ) {
-          ctx.fillStyle = "blue";
-          ctx.fillRect(
-            player.x - cameraX,
-            player.y,
-            player.width,
-            player.height
-          );
-          ctx.strokeStyle = "black";
-          ctx.strokeRect(
-            player.x - cameraX,
-            player.y,
-            player.width,
-            player.height
-          );
+          if (player.image && player.image.complete) {
+            ctx.save(); // <-- save context state
+            if (player.direction === "left") {
+              ctx.scale(-1, 1);
+              ctx.drawImage(
+                player.image,
+                -(player.x + player.width - cameraX), // fixed camera offset
+                player.y,
+                player.width,
+                player.height
+              );
+            } else {
+              ctx.drawImage(
+                player.image,
+                player.x - cameraX,
+                player.y,
+                player.width,
+                player.height
+              );
+            }
+            ctx.restore(); // <-- restore to normal
+          }
         }
       }
+
+      
 
       // HUD
       if (gameState === "playing" || gameState === "paused") {

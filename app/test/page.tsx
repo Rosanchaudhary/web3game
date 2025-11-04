@@ -74,7 +74,7 @@ export default function CanvasPlayer() {
       img.src = `/player/Jump (${i}).png`;
       sprites.jumpFrames.push(img);
     }
-
+ 
     // 🎮 Controls
     const keys = { left: false, right: false, up: false };
     const handleKeyDown = (e: KeyboardEvent) => {
