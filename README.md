@@ -6,9 +6,19 @@ Powered by **Web3**, **Next.js**, and **Framer Motion**, BetGames brings nostalg
 
 ---
 
+## 🏠 Preview
+
+<div align="center">
+  <img src="https://github.com/Rosanchaudhary/web3game/blob/main/screenshots/Screenshot%202025-11-05%20134429.png?raw=true" alt="Home Page Screenshot" width="80%"/>
+  <br/>
+  <em>🏠 Home Page — Explore games and connect wallet</em>
+</div>
+
+---
+
 ## 🚀 Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
 npm run dev
