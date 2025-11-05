@@ -31,13 +31,14 @@ export default function Platformer() {
       invincibleTimer: 0,
       direction: "right" as "left" | "right",
       state: "idle" as "idle" | "walk" | "jump" | "fall",
-
       frameIndex: 0,
       frameTimer: 0,
       frameSpeed: 6, // lower = faster animation
       runFrames: [],
       jumpFrames: [],
       idleFrames: [],
+      deadFrames: [],
+      isDead: false,
     };
 
     if (player.imageSrc) {
@@ -64,6 +65,13 @@ export default function Platformer() {
       const img = new Image();
       img.src = `/player/Idle (${i}).png`;
       player.idleFrames.push(img);
+    }
+
+    // Load death frames
+    for (let i = 1; i <= 10; i++) {
+      const img = new Image();
+      img.src = `/player/Dead (${i}).png`;
+      player.deadFrames.push(img);
     }
 
     // ⚙️ Physics
@@ -115,20 +123,33 @@ export default function Platformer() {
 
     // 💀 Respawn
     function respawnNear(x: number) {
-      if (player.invincible) return;
+      if (player.invincible || player.isDead) return;
       player.lives -= 1;
 
+      // Trigger death animation instead of instant respawn
+      player.isDead = true;
+      player.state = "dead";
+      player.frameIndex = 0; // reset death animation frame
+
       if (player.lives <= 0) {
-        gameState = "gameover";
+        setTimeout(() => {
+          gameState = "gameover";
+        }, 1000); // let animation finish
         return;
       }
 
-      player.x = Math.max(50, x - 100);
-      player.y = 150;
-      player.vy = 0;
+      // Respawn after animation
+      setTimeout(() => {
+        player.x = Math.max(50, x - 100);
+        player.y = 150;
+        player.vy = 0;
 
-      player.invincible = true;
-      player.invincibleTimer = 60; // ~1s
+        player.invincible = true;
+        player.invincibleTimer = 60;
+
+        player.isDead = false;
+        player.state = "idle";
+      }, 1000); // matches death animation time
     }
 
     // 🔁 Reset
@@ -282,6 +303,11 @@ export default function Platformer() {
           player.frameIndex++;
           if (player.frameIndex >= player.idleFrames.length)
             player.frameIndex = 0;
+        } else if (player.state === "dead") {
+          player.frameIndex++;
+          if (player.frameIndex >= player.deadFrames.length) {
+            player.frameIndex = player.deadFrames.length - 1; // hold last frame
+          }
         }
 
         // Reset frame when idle or falling
@@ -343,6 +369,11 @@ export default function Platformer() {
             player.idleFrames[player.frameIndex]
           ) {
             sprite = player.idleFrames[player.frameIndex];
+          } else if (
+            player.state === "dead" &&
+            player.deadFrames[player.frameIndex]
+          ) {
+            sprite = player.deadFrames[player.frameIndex];
           }
 
           if (sprite && sprite.complete) {

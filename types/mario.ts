@@ -38,6 +38,9 @@ export interface Player {
   runFrames: HTMLImageElement[],
   jumpFrames: HTMLImageElement[],
   idleFrames: HTMLImageElement[],
+  deadFrames: HTMLImageElement[],
+  isDead: boolean,
+
 
 
 }
