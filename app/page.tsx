@@ -27,15 +27,23 @@ const games = [
     title: "Tetris",
     description: "Stack blocks, clear lines, and climb the leaderboard.",
     route: "/tetris",
-    icon: Blocks, // ⬜ classic Tetris vibe
+    icon: Blocks,
   },
   {
     title: "Flappy Bird",
     description: "Tap to fly and dodge pipes in this addictive classic.",
     route: "/flappybird",
-    icon: Bird, // 🐥 simple, clean bird icon
+    icon: Bird,
+  },
+  {
+    title: "Mario Platformer",
+    description: "Run, jump, and collect coins in this retro-style platformer adventure.",
+    route: "/mario",
+    icon: Blocks,
   },
 ];
+
+
 
 
 export default function Home() {
