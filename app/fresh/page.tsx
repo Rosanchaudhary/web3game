@@ -31,12 +31,39 @@ export default function Platformer() {
       invincibleTimer: 0,
       direction: "right" as "left" | "right",
       state: "idle" as "idle" | "walk" | "jump" | "fall",
+
+      frameIndex: 0,
+      frameTimer: 0,
+      frameSpeed: 6, // lower = faster animation
+      runFrames: [],
+      jumpFrames: [],
+      idleFrames: [],
     };
 
     if (player.imageSrc) {
       const playerImage = new Image();
       playerImage.src = player.imageSrc;
       player.image = playerImage;
+    }
+
+    // Load run frames
+    for (let i = 1; i <= 8; i++) {
+      const img = new Image();
+      img.src = `/player/Run (${i}).png`;
+      player.runFrames.push(img);
+    }
+    // Load jump frames
+    for (let i = 1; i <= 12; i++) {
+      const img = new Image();
+      img.src = `/player/Jump (${i}).png`;
+      player.jumpFrames.push(img);
+    }
+
+    // Load idle frames
+    for (let i = 1; i <= 10; i++) {
+      const img = new Image();
+      img.src = `/player/Idle (${i}).png`;
+      player.idleFrames.push(img);
     }
 
     // ⚙️ Physics
@@ -231,6 +258,38 @@ export default function Platformer() {
         player.state = "idle";
       }
 
+      // Animation update
+      player.frameTimer += delta;
+      if (player.frameTimer >= player.frameSpeed) {
+        player.frameTimer = 0;
+
+        // Walking / running animation
+        if (player.state === "walk") {
+          player.frameIndex++;
+          if (player.frameIndex >= player.runFrames.length)
+            player.frameIndex = 0;
+        }
+
+        // Jump animation
+        else if (player.state === "jump") {
+          player.frameIndex++;
+          if (player.frameIndex >= player.jumpFrames.length) {
+            player.frameIndex = player.jumpFrames.length - 1; // hold last jump frame
+          }
+        }
+        // Idle animation — loop forever
+        else if (player.state === "idle") {
+          player.frameIndex++;
+          if (player.frameIndex >= player.idleFrames.length)
+            player.frameIndex = 0;
+        }
+
+        // Reset frame when idle or falling
+        else {
+          player.frameIndex = 0;
+        }
+      }
+
       // Fall off
       if (player.y > height + 200 && !player.invincible) respawnNear(player.x);
 
@@ -241,7 +300,7 @@ export default function Platformer() {
     }
 
     function draw() {
-     // console.log(player.state)
+      // console.log(player.state)
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "#b3e5fc";
       ctx.fillRect(0, 0, width, height);
@@ -268,32 +327,50 @@ export default function Platformer() {
           !player.invincible ||
           Math.floor(performance.now() / 100) % 2 === 0
         ) {
-          if (player.image && player.image.complete) {
-            ctx.save(); // <-- save context state
+          // ✅ Choose correct sprite
+          let sprite = player.image; // default idle frame
+
+          // ✅ If walking, use run animation
+          if (player.state === "walk" && player.runFrames[player.frameIndex]) {
+            sprite = player.runFrames[player.frameIndex];
+          } else if (
+            player.state === "jump" &&
+            player.jumpFrames[player.frameIndex]
+          ) {
+            sprite = player.jumpFrames[player.frameIndex];
+          } else if (
+            player.state === "idle" &&
+            player.idleFrames[player.frameIndex]
+          ) {
+            sprite = player.idleFrames[player.frameIndex];
+          }
+
+          if (sprite && sprite.complete) {
+            ctx.save();
+
             if (player.direction === "left") {
               ctx.scale(-1, 1);
               ctx.drawImage(
-                player.image,
-                -(player.x + player.width - cameraX), // fixed camera offset
+                sprite,
+                -(player.x + player.width - cameraX),
                 player.y,
                 player.width,
                 player.height
               );
             } else {
               ctx.drawImage(
-                player.image,
+                sprite,
                 player.x - cameraX,
                 player.y,
                 player.width,
                 player.height
               );
             }
-            ctx.restore(); // <-- restore to normal
+
+            ctx.restore();
           }
         }
       }
-
-      
 
       // HUD
       if (gameState === "playing" || gameState === "paused") {

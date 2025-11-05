@@ -31,5 +31,13 @@ export interface Player {
   invincible: boolean;
   invincibleTimer: number;
   direction: string;
-  state:string;
+  state: string;
+  frameIndex: number,
+  frameTimer: number,
+  frameSpeed: number, // lower = faster animation
+  runFrames: HTMLImageElement[],
+  jumpFrames: HTMLImageElement[],
+  idleFrames: HTMLImageElement[],
+
+
 }
