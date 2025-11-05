@@ -1,8 +1,8 @@
 "use client";
 
-import { Player, Tile } from "@/types/mario";
-import { tiles } from "@/utils/mario";
 import { useEffect, useRef } from "react";
+import { tiles } from "./tiles/tiles";
+import { Player, Tile } from "./type/type";
 
 type GameState = "start" | "playing" | "paused" | "won" | "gameover";
 
@@ -470,10 +470,12 @@ export default function Platformer() {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="border w-full h-full bg-sky-200"
-      style={{ maxWidth: "800px", maxHeight: "500px" }}
-    />
+    <main className=" h-screen w-screen flex flex-col items-center justify-center bg-blue-200">
+      <canvas
+        ref={canvasRef}
+        className="border rounded-2xl w-full h-full bg-sky-200"
+        style={{ maxWidth: "800px", maxHeight: "500px" }}
+      />
+    </main>
   );
 }
