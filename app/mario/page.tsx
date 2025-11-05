@@ -15,7 +15,7 @@ export default function Platformer() {
     const width = (canvas.width = 800);
     const height = (canvas.height = 500);
 
-    // 🎮 Player setup
+    // player setup object
     const player: Player = {
       x: 100,
       y: 100,
@@ -74,12 +74,12 @@ export default function Platformer() {
       player.deadFrames.push(img);
     }
 
-    // ⚙️ Physics
+    // Physics variable
     const gravity = 0.25;
     const jumpForce = 6;
     const moveSpeed = 3;
 
-    // 🎯 Camera + game state
+    // variables for camera
     let cameraX = 0;
     let gameState: GameState = "start";
 
@@ -91,7 +91,7 @@ export default function Platformer() {
       }
     }
 
-    // 🎮 Input
+    // input from user
     const keys: Record<string, boolean> = {};
     window.addEventListener("keydown", (e) => {
       keys[e.key] = true;
@@ -111,7 +111,7 @@ export default function Platformer() {
     });
     window.addEventListener("keyup", (e) => (keys[e.key] = false));
 
-    // 🔍 Collision
+    //Collision checking physics
     function checkCollision(a: Player | Tile, b: Tile) {
       return (
         a.x < b.x + b.width &&
@@ -121,7 +121,7 @@ export default function Platformer() {
       );
     }
 
-    // 💀 Respawn
+    //Respwan player after death
     function respawnNear(x: number) {
       if (player.invincible || player.isDead) return;
       player.lives -= 1;
@@ -152,7 +152,7 @@ export default function Platformer() {
       }, 1000); // matches death animation time
     }
 
-    // 🔁 Reset
+    //Function to reset game
     function resetGame() {
       player.x = 100;
       player.y = 100;
@@ -326,37 +326,35 @@ export default function Platformer() {
     }
 
     function draw() {
-      // console.log(player.state)
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = "#b3e5fc";
       ctx.fillRect(0, 0, width, height);
 
-      // Draw tiles (decorations first, then others)
+      //Render decorations first
       for (const t of tiles) {
         if (t.type === "decoration") {
-          // 🖼️ If this decoration has a loaded image, draw it
+          //If this decoration has a loaded image, draw it
           if (t.image && t.image.complete) {
             ctx.drawImage(t.image, t.x - cameraX, t.y, t.width, t.height);
           }
           continue;
         }
 
-        // ✳️ Normal tiles
+        //  Normal tiles
         if (t.image && t.image.complete) {
           ctx.drawImage(t.image, t.x - cameraX, t.y, t.width, t.height);
         }
       }
 
-      // 🧍 Player render
+      // Render player here
       if (gameState !== "start" && gameState !== "gameover") {
         if (
           !player.invincible ||
           Math.floor(performance.now() / 100) % 2 === 0
         ) {
-          // ✅ Choose correct sprite
           let sprite = player.image; // default idle frame
 
-          // ✅ If walking, use run animation
+          //Different type of animations
           if (player.state === "walk" && player.runFrames[player.frameIndex]) {
             sprite = player.runFrames[player.frameIndex];
           } else if (
