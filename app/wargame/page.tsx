@@ -25,7 +25,7 @@ export interface Card {
   rank: Rank;
 }
 
-// Utility functions
+// Utility
 const suits: Suit[] = ["♠", "♥", "♦", "♣"];
 const ranks: Rank[] = [
   "A",
@@ -45,11 +45,7 @@ const ranks: Rank[] = [
 
 const createDeck = (): Card[] => {
   const deck: Card[] = [];
-  for (const suit of suits) {
-    for (const rank of ranks) {
-      deck.push({ suit, rank });
-    }
-  }
+  for (const suit of suits) for (const rank of ranks) deck.push({ suit, rank });
   return deck;
 };
 
@@ -73,12 +69,11 @@ const getValue = (rank: Rank): number => {
     case "K":
       return 13;
     default:
-      return parseInt(rank, 10);
+      return parseInt(rank);
   }
 };
 
-// 🎮 Main Component
-export default function WarGame(){
+export default function WarGame() {
   const [deck, setDeck] = useState<Card[]>([]);
   const [playerDeck, setPlayerDeck] = useState<Card[]>([]);
   const [computerDeck, setComputerDeck] = useState<Card[]>([]);
@@ -94,40 +89,37 @@ export default function WarGame(){
   const [computerScore, setComputerScore] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
 
-const startGame = (): (() => void) => {
-  setGameOver(false);
-  setWinner(null);
-  setPlayerScore(0);
-  setComputerScore(0);
-  setCurrentRound(0);
-  setPlayerCard(null);
-  setComputerCard(null);
-  setShuffling(true);
+  const startGame = (): (() => void) => {
+    setGameOver(false);
+    setWinner(null);
+    setPlayerScore(0);
+    setComputerScore(0);
+    setCurrentRound(0);
+    setPlayerCard(null);
+    setComputerCard(null);
+    setShuffling(true);
 
-  const fullDeck = shuffleDeck(createDeck());
-  setDeck(fullDeck);
+    const fullDeck = shuffleDeck(createDeck());
+    setDeck(fullDeck);
 
-  const tempCards = Array.from({ length: 20 }, (_, i) => i);
-  setAnimatedCards(tempCards);
+    const tempCards = Array.from({ length: 20 }, (_, i) => i);
+    setAnimatedCards(tempCards);
 
-  const endTimer = setTimeout(() => {
-    const playerHalf = fullDeck.slice(0, 26);
-    const compHalf = fullDeck.slice(26);
-    setPlayerDeck(playerHalf);
-    setComputerDeck(compHalf);
-    setShuffling(false);
-  }, 3000);
+    const endTimer = setTimeout(() => {
+      const playerHalf = fullDeck.slice(0, 26);
+      const compHalf = fullDeck.slice(26);
+      setPlayerDeck(playerHalf);
+      setComputerDeck(compHalf);
+      setShuffling(false);
+    }, 3000);
 
-  // Cleanup for the timeout
-  return () => clearTimeout(endTimer);
-};
+    return () => clearTimeout(endTimer);
+  };
 
-//Shuffle and deal cards initially
-useEffect(() => {
-  const cleanup = startGame();
-  return cleanup;
-
-}, []);
+  useEffect(() => {
+    const cleanup = startGame();
+    return cleanup;
+  }, []);
 
   const playRound = (): void => {
     if (playerDeck.length === 0 || computerDeck.length === 0) {
@@ -144,28 +136,21 @@ useEffect(() => {
     const cVal = getValue(cCard.rank);
 
     let roundWinner: "player" | "computer" | "tie" | null = null;
-
     if (pVal > cVal) {
       roundWinner = "player";
       setPlayerScore((s) => s + 1);
     } else if (cVal > pVal) {
       roundWinner = "computer";
       setComputerScore((s) => s + 1);
-    } else {
-      roundWinner = "tie";
-    }
+    } else roundWinner = "tie";
 
     setWinner(roundWinner);
 
-    // Remove top cards from both decks
-    const newPDeck = playerDeck.slice(1);
-    const newCDeck = computerDeck.slice(1);
-    setPlayerDeck(newPDeck);
-    setComputerDeck(newCDeck);
-
+    setPlayerDeck((prev) => prev.slice(1));
+    setComputerDeck((prev) => prev.slice(1));
     setCurrentRound((r) => r + 1);
 
-    if (newPDeck.length === 0 || newCDeck.length === 0) {
+    if (playerDeck.length === 1 || computerDeck.length === 1) {
       setTimeout(endGame, 1000);
     }
   };
@@ -181,32 +166,35 @@ useEffect(() => {
     startGame();
   };
 
-  
   return (
-    <div className="min-h-screen bg-linear-to-b from-slate-900 to-slate-800 flex flex-col items-center justify-center text-white overflow-hidden relative">
-      <h1 className="text-4xl font-bold mb-8">⚔️ War</h1>
+  <div className="min-h-screen bg-linear-to-b from-emerald-900 to-emerald-950 flex flex-col items-center justify-center text-white overflow-hidden relative">
+    <h1 className="text-5xl font-bold mb-6 text-yellow-400 drop-shadow-lg tracking-wide">
+      ⚔️ War Card Game
+    </h1>
+
+    {/* Table Area */}
+    <div className="relative w-full max-w-5xl rounded-[3rem] bg-linear-to-b from-green-700 to-green-900 shadow-[0_0_80px_rgba(0,0,0,0.8)] border-8 border-amber-700 overflow-hidden py-10 flex flex-col items-center justify-center">
 
       {/* Shuffling Animation */}
       {shuffling && (
         <div className="relative w-full h-64 flex items-center justify-center">
           <AnimatePresence>
-            {animatedCards.map((i: number) => {
+            {animatedCards.map((i) => {
               const isLeft = i % 2 === 0;
               return (
                 <motion.div
                   key={i}
-                  className="absolute w-24 h-36 bg-white text-black rounded-lg shadow-xl flex items-center justify-center border border-slate-400"
+                  className="absolute w-24 h-36 bg-white text-black rounded-xl shadow-xl flex items-center justify-center border border-slate-400"
                   initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
                   animate={{
-                    x: isLeft ? -250 : 250,
-                    // eslint-disable-next-line react-hooks/purity
+                    x: isLeft ? -200 : 200,
                     y: 100 + Math.random() * 30,
-                    rotate: isLeft ? -15 : 15,
+                    rotate: isLeft ? -10 : 10,
                     opacity: 1,
                   }}
                   transition={{
                     delay: i * 0.05,
-                    duration: 0.8,
+                    duration: 0.7,
                     ease: "easeOut",
                   }}
                   exit={{ opacity: 0 }}
@@ -222,55 +210,83 @@ useEffect(() => {
       {/* Gameplay */}
       {!shuffling && (
         <>
-          <div className="flex justify-between items-center w-full max-w-4xl px-12 mt-12">
+          <div className="relative flex flex-col items-center justify-between h-[500px] w-full max-w-4xl">
+            {/* Computer Section */}
             <div className="flex flex-col items-center">
-              <h2 className="text-2xl mb-3">🤖 Computer</h2>
+              <h2 className="text-2xl mb-3 text-red-300 drop-shadow-md">🤖 Computer</h2>
+
               <motion.div
-                key={computerCard ? `${computerCard.rank}${computerCard.suit}` : "hidden"}
-                initial={{ y: -200, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 120 }}
-                className={`w-24 h-36 bg-white text-black rounded-lg flex items-center justify-center shadow-lg text-3xl ${
-                  winner === "computer" ? "ring-4 ring-green-500" : ""
-                }`}
+                className="w-24 h-36 bg-slate-200 rounded-lg flex items-center justify-center text-black text-2xl shadow-lg mb-4"
+                whileHover={{ scale: 1.05 }}
               >
-                {computerCard ? `${computerCard.rank}${computerCard.suit}` : "🂠"}
+                🂠
               </motion.div>
-              <p className="mt-2 text-slate-400">Cards: {computerDeck.length}</p>
+
+              <AnimatePresence>
+                {computerCard && (
+                  <motion.div
+                    key={`${computerCard.rank}${computerCard.suit}-${currentRound}`}
+                    className={`absolute top-[140px] w-24 h-36 bg-white text-black rounded-lg flex items-center justify-center shadow-lg text-3xl ${
+                      winner === "computer" ? "ring-4 ring-red-500" : ""
+                    }`}
+                    initial={{ y: -100, opacity: 0, scale: 0.8 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: "spring", stiffness: 120, damping: 10 }}
+                  >
+                    {computerCard.rank}
+                    {computerCard.suit}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
+            {/* Player Section */}
             <div className="flex flex-col items-center">
-              <h2 className="text-2xl mb-3">👤 Player</h2>
+              <AnimatePresence>
+                {playerCard && (
+                  <motion.div
+                    key={`${playerCard.rank}${playerCard.suit}-${currentRound}`}
+                    className={`absolute bottom-[140px] w-24 h-36 bg-white text-black rounded-lg flex items-center justify-center shadow-lg text-3xl ${
+                      winner === "player" ? "ring-4 ring-blue-500" : ""
+                    }`}
+                    initial={{ y: 100, opacity: 0, scale: 0.8 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: "spring", stiffness: 120, damping: 10 }}
+                  >
+                    {playerCard.rank}
+                    {playerCard.suit}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <motion.div
-                key={playerCard ? `${playerCard.rank}${playerCard.suit}` : "hidden"}
-                initial={{ y: 200, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 120 }}
-                className={`w-24 h-36 bg-white text-black rounded-lg flex items-center justify-center shadow-lg text-3xl ${
-                  winner === "player" ? "ring-4 ring-blue-500" : ""
-                }`}
+                className="w-24 h-36 bg-slate-200 rounded-lg flex items-center justify-center text-black text-2xl shadow-lg mt-4"
+                whileHover={{ scale: 1.05 }}
               >
-                {playerCard ? `${playerCard.rank}${playerCard.suit}` : "🂠"}
+                🂠
               </motion.div>
-              <p className="mt-2 text-slate-400">Cards: {playerDeck.length}</p>
+
+              <h2 className="text-2xl mt-3 text-blue-300 drop-shadow-md">👤 Player</h2>
             </div>
           </div>
 
           {/* Round Result */}
-          <div className="mt-12 text-center min-h-10">
+          <div className="mt-8 text-center min-h-10">
             {winner === "player" && (
-              <p className="text-blue-400 text-xl">You win this round!</p>
+              <p className="text-blue-400 text-xl font-semibold">You win this round!</p>
             )}
             {winner === "computer" && (
-              <p className="text-green-400 text-xl">Computer wins this round!</p>
+              <p className="text-red-400 text-xl font-semibold">Computer wins this round!</p>
             )}
             {winner === "tie" && (
-              <p className="text-yellow-400 text-xl">It&apos;s a tie!</p>
+              <p className="text-yellow-400 text-xl font-semibold">It&apos;s a tie!</p>
             )}
           </div>
 
           {/* Scores */}
-          <div className="mt-8 flex gap-10 text-lg text-slate-300">
+          <div className="mt-6 flex gap-10 text-lg text-slate-200 font-medium">
             <span>👤 Player: {playerScore}</span>
             <span>🤖 Computer: {computerScore}</span>
             <span>Round: {currentRound}</span>
@@ -280,20 +296,20 @@ useEffect(() => {
           {!gameOver && (
             <button
               onClick={playRound}
-              className="mt-8 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-lg"
+              className="mt-8 px-8 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-semibold text-lg shadow-md transition-transform hover:scale-105"
             >
               🎴 Deal Card
             </button>
           )}
 
-          {/* Game Over Message */}
+          {/* Game Over */}
           {gameOver && (
             <div className="mt-10 text-2xl font-bold text-center">
               {winner === "final-player" && (
                 <p className="text-blue-400">🎉 You win the game!</p>
               )}
               {winner === "final-computer" && (
-                <p className="text-green-400">💻 Computer wins the game!</p>
+                <p className="text-red-400">💻 Computer wins the game!</p>
               )}
               {winner === "final-tie" && (
                 <p className="text-yellow-400">🤝 It&apos;s an overall tie!</p>
@@ -301,7 +317,7 @@ useEffect(() => {
 
               <button
                 onClick={restartGame}
-                className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold text-lg"
+                className="mt-6 px-6 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-semibold text-lg shadow-md transition-transform hover:scale-105"
               >
                 🔄 Restart Game
               </button>
@@ -310,5 +326,7 @@ useEffect(() => {
         </>
       )}
     </div>
-  );
+  </div>
+);
+
 }
