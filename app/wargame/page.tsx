@@ -203,214 +203,191 @@ export default function WarGame() {
     startGame();
   };
 
-  return (
-    <div className="min-h-screen bg-linear-to-b from-emerald-900 to-emerald-950 flex flex-col items-center justify-center text-white overflow-hidden relative">
-      <h1 className="text-5xl font-bold mb-6 text-yellow-400 drop-shadow-lg tracking-wide">
+return (
+  <div className="min-h-screen bg-linear-to-b from-emerald-900 to-emerald-950 flex flex-col items-center justify-center text-white overflow-hidden relative px-4">
+    {/* Control Panel */}
+    <div className=" mt-8 w-full max-w-5xl bg-emerald-800/60 backdrop-blur-sm border border-amber-700 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between shadow-lg">
+      {/* Title */}
+      <h1 className="text-3xl sm:text-4xl font-bold text-yellow-400 drop-shadow-lg mb-2 sm:mb-0">
         ⚔️ War Card Game
       </h1>
 
-      {/* Table */}
-      <div className="relative w-full max-w-5xl rounded-[3rem] bg-linear-to-b from-green-700 to-green-900 shadow-[0_0_80px_rgba(0,0,0,0.8)] border-8 border-amber-700 overflow-hidden py-10 flex flex-col items-center justify-center">
-        {/* Shuffling Animation */}
-        {shuffling && (
-          <div className="relative w-full h-64 flex items-center justify-center">
-            <AnimatePresence>
-              {animatedCards.map((i) => {
-                const isLeft = i % 2 === 0;
-                return (
-                  <motion.div
-                    key={i}
-                    className="absolute w-24 h-36 bg-white text-black rounded-xl shadow-xl flex items-center justify-center border border-slate-400"
-                    initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
-                    animate={{
-                      x: isLeft ? -200 : 200,
-                      // eslint-disable-next-line react-hooks/purity
-                      y: 100 + Math.random() * 30,
-                      rotate: isLeft ? -10 : 10,
-                      opacity: 1,
-                    }}
-                    transition={{
-                      delay: i * 0.05,
-                      duration: 0.7,
-                      ease: "easeOut",
-                    }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <Image
-                      src="/cards/back.png"
-                      alt="Card Back"
-                      width={240}
-                      height={360}
-                      className="w-full h-full object-cover"
-                    />
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
+      {/* Scores */}
+      <div className="flex gap-6 text-slate-200 text-lg font-medium mb-2 sm:mb-0">
+        <span>👤 Player: {playerScore}</span>
+        <span>🤖 Computer: {computerScore}</span>
+        <span>Round: {currentRound}</span>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex gap-3">
+        {!gameOver && !shuffling && (
+          <button
+            onClick={playRound}
+            className="px-5 py-2 bg-amber-600 hover:bg-amber-700 rounded-lg font-semibold text-md shadow-md transition-transform hover:scale-105"
+          >
+            🎴 Deal
+          </button>
         )}
-
-        {/* Gameplay */}
-        {!shuffling && (
-          <>
-            <div className="relative flex flex-col items-center justify-between h-[500px] w-full max-w-4xl">
-              {/* Computer Section */}
-              <div className="flex flex-col items-center">
-                <h2 className="text-2xl mb-3 text-red-300 drop-shadow-md">
-                  🤖 Computer
-                </h2>
-
-                <motion.div
-                  className="w-24 h-36  rounded-lg overflow-hidden shadow-lg mb-4"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <Image
-                    src="/cards/back.png"
-                    alt="Card Back"
-                    width={240}
-                    height={360}
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-
-                <AnimatePresence>
-                  {computerCard && (
-                    <motion.div
-                      key={`${computerCard.rank}${computerCard.suit}-${currentRound}`}
-                      className={`absolute top-[140px] w-24 h-36 rounded-lg shadow-lg overflow-hidden ${
-                        winner === "computer" ? "ring-4 ring-red-500" : ""
-                      }`}
-                      initial={{ y: -100, opacity: 0, scale: 0.8 }}
-                      animate={{ y: 0, opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 120,
-                        damping: 10,
-                      }}
-                    >
-                      <Image
-                        src={getCardImage(computerCard)}
-                        alt={`${computerCard.rank}${computerCard.suit}`}
-                        className="w-full h-full object-cover"
-                        width={240}
-                        height={360}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Player Section */}
-              <div className="flex flex-col items-center">
-                <AnimatePresence>
-                  {playerCard && (
-                    <motion.div
-                      key={`${playerCard.rank}${playerCard.suit}-${currentRound}`}
-                      className={`absolute bottom-[140px] w-24 h-36 rounded-lg shadow-lg overflow-hidden ${
-                        winner === "player" ? "ring-4 ring-blue-500" : ""
-                      }`}
-                      initial={{ y: 100, opacity: 0, scale: 0.8 }}
-                      animate={{ y: 0, opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 120,
-                        damping: 10,
-                      }}
-                    >
-                      <Image
-                        src={getCardImage(playerCard)}
-                        alt={`${playerCard.rank}${playerCard.suit}`}
-                        width={240}
-                        height={360}
-                        className="w-full h-full object-cover"
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <motion.div
-                  className="w-24 h-36  rounded-lg overflow-hidden shadow-lg mt-4"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <Image
-                    src="/cards/back.png"
-                    alt="Card Back"
-                    width={240}
-                    height={360}
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-
-                <h2 className="text-2xl mt-3 text-blue-300 drop-shadow-md">
-                  👤 Player
-                </h2>
-              </div>
-            </div>
-
-            {/* Round Result */}
-            <div className="mt-8 text-center min-h-10">
-              {winner === "player" && (
-                <p className="text-blue-400 text-xl font-semibold">
-                  You win this round!
-                </p>
-              )}
-              {winner === "computer" && (
-                <p className="text-red-400 text-xl font-semibold">
-                  Computer wins this round!
-                </p>
-              )}
-              {winner === "tie" && (
-                <p className="text-yellow-400 text-xl font-semibold">
-                  It&apos;s a tie!
-                </p>
-              )}
-            </div>
-
-            {/* Scores */}
-            <div className="mt-6 flex gap-10 text-lg text-slate-200 font-medium">
-              <span>👤 Player: {playerScore}</span>
-              <span>🤖 Computer: {computerScore}</span>
-              <span>Round: {currentRound}</span>
-            </div>
-
-            {/* Deal Button */}
-            {!gameOver && (
-              <button
-                onClick={playRound}
-                className="mt-8 px-8 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-semibold text-lg shadow-md transition-transform hover:scale-105"
-              >
-                🎴 Deal Card
-              </button>
-            )}
-
-            {/* Game Over */}
-            {gameOver && (
-              <div className="mt-10 text-2xl font-bold text-center">
-                {winner === "final-player" && (
-                  <p className="text-blue-400">🎉 You win the game!</p>
-                )}
-                {winner === "final-computer" && (
-                  <p className="text-red-400">💻 Computer wins the game!</p>
-                )}
-                {winner === "final-tie" && (
-                  <p className="text-yellow-400">
-                    🤝 It&apos;s an overall tie!
-                  </p>
-                )}
-
-                <button
-                  onClick={restartGame}
-                  className="mt-6 px-6 py-3 bg-amber-600 hover:bg-amber-700 rounded-lg font-semibold text-lg shadow-md transition-transform hover:scale-105"
-                >
-                  🔄 Restart Game
-                </button>
-              </div>
-            )}
-          </>
+        {gameOver && (
+          <button
+            onClick={restartGame}
+            className="px-5 py-2 bg-amber-600 hover:bg-amber-700 rounded-lg font-semibold text-md shadow-md transition-transform hover:scale-105"
+          >
+            🔄 Restart
+          </button>
         )}
       </div>
     </div>
-  );
+
+    {/* Table */}
+    <div className="relative w-full max-w-5xl rounded-[3rem] bg-linear-to-b from-green-700 to-green-900 shadow-[0_0_80px_rgba(0,0,0,0.8)] border-8 border-amber-700 overflow-hidden py-10 flex flex-col items-center justify-center">
+      {/* Shuffling Animation */}
+      {shuffling && (
+        <div className="relative w-full h-64 flex items-center justify-center">
+          <AnimatePresence>
+            {animatedCards.map((i) => {
+              const isLeft = i % 2 === 0;
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute w-24 h-36 bg-white text-black rounded-xl shadow-xl flex items-center justify-center border border-slate-400"
+                  initial={{ x: 0, y: 0, rotate: 0, opacity: 0 }}
+                  animate={{
+                    x: isLeft ? -200 : 200,
+                    y: 100 + Math.random() * 30,
+                    rotate: isLeft ? -10 : 10,
+                    opacity: 1,
+                  }}
+                  transition={{
+                    delay: i * 0.05,
+                    duration: 0.7,
+                    ease: "easeOut",
+                  }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Image
+                    src="/cards/back.png"
+                    alt="Card Back"
+                    width={240}
+                    height={360}
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Gameplay (Cards Only) */}
+      {!shuffling && (
+        <div className="relative flex flex-col items-center justify-between h-[500px] w-full max-w-4xl">
+          {/* Computer Section */}
+          <div className="flex flex-col items-center">
+            <motion.div
+              className="w-24 h-36 rounded-lg overflow-hidden shadow-lg mb-4"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Image
+                src="/cards/back.png"
+                alt="Card Back"
+                width={240}
+                height={360}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+
+            <AnimatePresence>
+              {computerCard && (
+                <motion.div
+                  key={`${computerCard.rank}${computerCard.suit}-${currentRound}`}
+                  className={`absolute top-[140px] w-24 h-36 rounded-lg shadow-lg overflow-hidden ${
+                    winner === "computer" ? "ring-4 ring-red-500" : ""
+                  }`}
+                  initial={{ y: -100, opacity: 0, scale: 0.8 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 120,
+                    damping: 10,
+                  }}
+                >
+                  <Image
+                    src={getCardImage(computerCard)}
+                    alt={`${computerCard.rank}${computerCard.suit}`}
+                    width={240}
+                    height={360}
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Player Section */}
+          <div className="flex flex-col items-center">
+            <AnimatePresence>
+              {playerCard && (
+                <motion.div
+                  key={`${playerCard.rank}${playerCard.suit}-${currentRound}`}
+                  className={`absolute bottom-[140px] w-24 h-36 rounded-lg shadow-lg overflow-hidden ${
+                    winner === "player" ? "ring-4 ring-blue-500" : ""
+                  }`}
+                  initial={{ y: 100, opacity: 0, scale: 0.8 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 120,
+                    damping: 10,
+                  }}
+                >
+                  <Image
+                    src={getCardImage(playerCard)}
+                    alt={`${playerCard.rank}${playerCard.suit}`}
+                    width={240}
+                    height={360}
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.div
+              className="w-24 h-36 rounded-lg overflow-hidden shadow-lg mt-4"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Image
+                src="/cards/back.png"
+                alt="Card Back"
+                width={240}
+                height={360}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Round Result */}
+    {!shuffling && (
+      <div className="mt-8 text-center min-h-10">
+        {winner === "player" && (
+          <p className="text-blue-400 text-xl font-semibold">You win this round!</p>
+        )}
+        {winner === "computer" && (
+          <p className="text-red-400 text-xl font-semibold">Computer wins this round!</p>
+        )}
+        {winner === "tie" && (
+          <p className="text-yellow-400 text-xl font-semibold">It&apos;s a tie!</p>
+        )}
+      </div>
+    )}
+  </div>
+);
+
+
 }
