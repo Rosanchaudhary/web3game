@@ -372,38 +372,61 @@ export default function FourPlayerFlexUI() {
         )}
       </div>
 
-      {/* Bottom player (A) */}
-      <div
-        className={`transition-transform duration-300 ${
-          turn === "A" ? "scale-110" : "scale-100"
-        }`}
-      >
-        {dealingDone && (
-          <div className="flex justify-center">
-            {hands.A.map((card, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ y: turn === "A" ? -10 : 0 }}
-                onClick={() => playCard("A", i)}
-                className="w-16 h-24 cursor-pointer -ml-8 first:ml-0"
-              >
-                <Image
-                  src={getCardImage(card)}
-                  alt={`${card.rank} of ${card.suit}`}
-                  width={120}
-                  height={180}
-                  className="w-full h-full object-cover rounded-lg shadow-md"
-                />
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Bottom Player */}
+      {dealingDone && (
+        <PlayerHand
+          cards={hands.A}
+          isTurn={turn === "A"}
+          onPlay={(i) => playCard("A", i)}
+        />
+      )}
 
       <p className="text-center text-lg text-slate-300">
         🔁 Current Turn:{" "}
         <span className="text-yellow-300 font-semibold">{turn}</span>
       </p>
+    </div>
+  );
+}
+
+
+function PlayerHand({
+  cards,
+  isTurn,
+  onPlay,
+}: {
+  cards: Card[];
+  isTurn: boolean;
+  onPlay: (i: number) => void;
+}) {
+  return (
+    <div
+      className={`transition-transform duration-300 ${
+        isTurn ? "scale-110" : "scale-100"
+      }`}
+    >
+      <div className="flex justify-center relative">
+        {cards.map((card, i) => (
+          <motion.div
+            key={i}
+            style={{
+              rotate: (i - cards.length / 2) * 5,
+              zIndex: i,
+            }}
+            whileHover={{ y: isTurn ? -12 : 0 }}
+            onClick={() => onPlay(i)}
+            className="w-16 h-24 cursor-pointer -ml-8 first:ml-0 origin-bottom"
+          >
+            <Image
+              src={getCardImage(card)}
+              alt={`${card.rank} of ${card.suit}`}
+              width={120}
+              height={180}
+              className="w-full h-full object-cover rounded-lg shadow-md"
+            />
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
