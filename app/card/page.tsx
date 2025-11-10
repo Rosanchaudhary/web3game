@@ -5,7 +5,20 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Suit = "♠" | "♥" | "♦" | "♣";
-type Rank = "A" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
+type Rank =
+  | "A"
+  | "2"
+  | "3"
+  | "4"
+  | "5"
+  | "6"
+  | "7"
+  | "8"
+  | "9"
+  | "10"
+  | "J"
+  | "Q"
+  | "K";
 
 interface Card {
   suit: Suit;
@@ -13,12 +26,26 @@ interface Card {
 }
 
 const suits: Suit[] = ["♠", "♥", "♦", "♣"];
-const ranks: Rank[] = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const ranks: Rank[] = [
+  "A",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "J",
+  "Q",
+  "K",
+];
 
 const createDeck = (): Card[] => {
   const deck: Card[] = [];
   for (const suit of suits) for (const rank of ranks) deck.push({ suit, rank });
-  return deck.sort(() => Math.random() - 0.5);
+  return deck;
 };
 
 const getCardImage = (card: Card | null): string => {
@@ -48,7 +75,12 @@ const getCardImage = (card: Card | null): string => {
 };
 
 export default function FourPlayerFlexUI() {
-  const [hands, setHands] = useState<Record<string, Card[]>>({ A: [], B: [], C: [], D: [] });
+  const [hands, setHands] = useState<Record<string, Card[]>>({
+    A: [],
+    B: [],
+    C: [],
+    D: [],
+  });
   const [centerCards, setCenterCards] = useState<Record<string, Card | null>>({
     A: null,
     B: null,
@@ -57,20 +89,76 @@ export default function FourPlayerFlexUI() {
   });
   const [turn, setTurn] = useState<"A" | "B" | "C" | "D">("A");
   const [animating, setAnimating] = useState(false);
+  const [deck, setDeck] = useState<Card[]>([]);
+  const [shuffling, setShuffling] = useState(true);
+  const [dealingCards, setDealingCards] = useState<
+    { id: number; player: "A" | "B" | "C" | "D" }[]
+  >([]);
 
-  useEffect(() => {
-    const deck = createDeck();
-    setHands({
-      A: deck.slice(0, 13),
-      B: deck.slice(13, 26),
-      C: deck.slice(26, 39),
-      D: deck.slice(39, 52),
+  const [completedCards, setCompletedCards] = useState<number[]>([]);
+  const [dealingDone, setDealingDone] = useState(false);
+
+  const handleCardAnimationComplete = (id: number) => {
+    setCompletedCards((prev) => {
+      const updated = [...prev, id];
+      if (updated.length === dealingCards.length) {
+        setDealingDone(true); // only now all cards finished
+      }
+      return updated;
     });
+  };
+
+  // Start shuffle then deal
+  useEffect(() => {
+    const d = createDeck();
+    setDeck(d);
+    setShuffling(true);
+
+    const timer = setTimeout(() => {
+      const shuffled = [...d].sort(() => Math.random() - 0.5);
+      setDeck(shuffled);
+      setShuffling(false);
+      startDealing(shuffled);
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, []);
 
+  // Animate dealing sequence
+  const startDealing = (deck: Card[]) => {
+    const playerOrder: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
+    let index = 0;
+    const handsProgress = { A: [], B: [], C: [], D: [] } as Record<
+      "A" | "B" | "C" | "D",
+      Card[]
+    >;
+
+    const interval = setInterval(() => {
+      const player = playerOrder[index % 4];
+      const card = deck[index];
+      if (!card) return;
+
+      // Animate card flying
+      setDealingCards((prev) => [
+        ...prev,
+        { id: index, player: player as "A" | "B" | "C" | "D" },
+      ]);
+
+      // Actually add to hand after short delay
+      setTimeout(() => {
+        handsProgress[player].push(card);
+        setHands({ ...handsProgress });
+        setDealingCards((prev) => prev.filter((c) => c.id !== index));
+      }, 600);
+
+      index++;
+      if (index >= deck.length) clearInterval(interval);
+    }, 120);
+  };
+
+  // Normal turn sequence
   useEffect(() => {
     if (turn !== "A" && hands[turn].length > 0) {
-      // eslint-disable-next-line react-hooks/immutability
       const timer = setTimeout(() => playCard(turn), 1000);
       return () => clearTimeout(timer);
     }
@@ -90,7 +178,10 @@ export default function FourPlayerFlexUI() {
     if (player === "A" && index !== undefined) {
       chosen = newHands[player].splice(index, 1)[0];
     } else {
-      chosen = newHands[player].splice(Math.floor(Math.random() * newHands[player].length), 1)[0];
+      chosen = newHands[player].splice(
+        Math.floor(Math.random() * newHands[player].length),
+        1
+      )[0];
     }
 
     if (!chosen) return;
@@ -104,7 +195,7 @@ export default function FourPlayerFlexUI() {
     }, 800);
   };
 
-  //  clear center after all 4 have played
+  // Clear center after all 4 have played
   useEffect(() => {
     if (Object.values(centerCards).every(Boolean)) {
       const timer = setTimeout(() => {
@@ -114,126 +205,204 @@ export default function FourPlayerFlexUI() {
     }
   }, [centerCards]);
 
-  return (
-   <div   className="min-h-screen flex flex-col text-white p-2 sm:p-4 gap-4 sm:gap-8 overflow-hidden
-             bg-[url('/table/table.jpg')] bg-cover bg-center bg-no-repeat">
+  // Helper: coordinates for each player
+  const playerPositions = {
+    A: { x: 0, y: 250 },
+    B: { x: -350, y: 0 },
+    C: { x: 0, y: -250 },
+    D: { x: 350, y: 0 },
+  };
 
-      <h1 className="text-3xl font-bold text-yellow-400 text-center">🃏 4 Player Flex Layout</h1>
+  return (
+    <div
+      className="min-h-screen flex flex-col text-white p-2 sm:p-4 gap-4 sm:gap-8 overflow-hidden relative
+             bg-[url('/table/table.jpg')] bg-cover bg-center bg-no-repeat"
+    >
+      <h1 className="text-3xl font-bold text-yellow-400 text-center z-10">
+        🃏 4 Player Flex Layout
+      </h1>
+
+      {/* Shuffle animation */}
+      <AnimatePresence>
+        {shuffling && (
+          <motion.div
+            key="shuffle"
+            className="absolute inset-0 flex justify-center items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute"
+                initial={{
+                  rotate: Math.random() * 360,
+                  x: Math.random() * 200 - 100,
+                  y: Math.random() * 200 - 100,
+                  scale: 0.7,
+                }}
+                animate={{
+                  rotate: [0, 360],
+                  x: [0, Math.random() * 80 - 40, 0],
+                  y: [0, Math.random() * 80 - 40, 0],
+                  transition: {
+                    repeat: Infinity,
+                    repeatType: "mirror",
+                    duration: 1.1,
+                    delay: i * 0.04,
+                  },
+                }}
+              >
+                <Image
+                  src="/cards/back.png"
+                  alt="shuffle"
+                  width={80}
+                  height={120}
+                  className="rounded-md shadow-lg"
+                />
+              </motion.div>
+            ))}
+            <motion.p
+              className="text-yellow-300 text-xl font-bold mt-72"
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+            >
+              Shuffling cards...
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Dealing animation */}
+      {!dealingDone && (
+        <AnimatePresence>
+          {dealingCards.map((card) => (
+            <motion.div
+              key={card.id}
+              initial={{ x: 0, y: 0, rotate: 0 }}
+              animate={{
+                x: playerPositions[card.player].x,
+                y: playerPositions[card.player].y,
+                rotate: Math.random() * 60 - 30,
+              }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              onAnimationComplete={() => handleCardAnimationComplete(card.id)}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
+            >
+              <Image
+                src="/cards/back.png"
+                alt="deal"
+                width={80}
+                height={120}
+                className="rounded-md shadow-lg"
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      )}
 
       {/* Top player (C) */}
       <div className="flex justify-center">
-        <PlayerBack name="C" isTurn={turn === "C"} cardCount={hands.C.length} orientation="horizontal" />
+        {dealingDone && (
+          <PlayerBack
+            name="C"
+            isTurn={turn === "C"}
+            cardCount={hands.C.length}
+            orientation="horizontal"
+          />
+        )}
       </div>
 
       {/* Center area */}
       <div className="flex justify-between items-center flex-1 px-16">
-        <PlayerBack name="B" isTurn={turn === "B"} cardCount={hands.B.length} orientation="vertical" />
+        {dealingDone && (
+          <PlayerBack
+            name="B"
+            isTurn={turn === "B"}
+            cardCount={hands.B.length}
+            orientation="vertical"
+          />
+        )}
 
-        {/* Center Cards */}
-        <div className="flex flex-col items-center justify-center w-[300px] h-[250px] bg-green-800 rounded-xl shadow-inner relative">
+        {/* Center cards */}
+        <div className="flex flex-col items-center justify-center w-[300px] h-[250px]  relative">
           <AnimatePresence>
-            {centerCards.C && (
-              <motion.div
-                key="C"
-                initial={{ y: -50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute top-6 left-1/2 -translate-x-1/2" 
-              >
-                <Image
-                  src={getCardImage(centerCards.C)}
-                  alt="C"
-                  width={90}
-                  height={130}
-                  className="rounded-lg shadow-lg"
-                />
-              </motion.div>
-            )}
-            {centerCards.B && (
-              <motion.div
-                key="B"
-                initial={{ x: -30, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute left-6 top-1/2 -translate-y-1/2"
-              >
-                <Image
-                  src={getCardImage(centerCards.B)}
-                  alt="B"
-                  width={90}
-                  height={130}
-                  className="rounded-lg shadow-lg"
-                />
-              </motion.div>
-            )}
-            {centerCards.A && (
-              <motion.div
-                key="A"
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute bottom-6 left-1/2 -translate-x-1/2"
-              >
-                <Image
-                  src={getCardImage(centerCards.A)}
-                  alt="A"
-                  width={90}
-                  height={130}
-                  className="rounded-lg shadow-lg"
-                />
-              </motion.div>
-            )}
-            {centerCards.D && (
-              <motion.div
-                key="D"
-                initial={{ x: 30, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute right-6 top-1/2 -translate-y-1/2"
-              >
-                <Image
-                  src={getCardImage(centerCards.D)}
-                  alt="D"
-                  width={90}
-                  height={130}
-                  className="rounded-lg shadow-lg"
-                />
-              </motion.div>
+            {Object.entries(centerCards).map(([key, card]) =>
+              card ? (
+                <motion.div
+                  key={key}
+                  initial={{
+                    y: key === "A" ? 30 : key === "C" ? -50 : 0,
+                    x: key === "B" ? -30 : key === "D" ? 30 : 0,
+                    opacity: 0,
+                  }}
+                  animate={{ x: 0, y: 0, opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className={`absolute ${
+                    key === "A"
+                      ? "bottom-6 left-1/2 -translate-x-1/2"
+                      : key === "C"
+                      ? "top-6 left-1/2 -translate-x-1/2"
+                      : key === "B"
+                      ? "left-6 top-1/2 -translate-y-1/2"
+                      : "right-6 top-1/2 -translate-y-1/2"
+                  }`}
+                >
+                  <Image
+                    src={getCardImage(card)}
+                    alt={key}
+                    width={90}
+                    height={130}
+                    className="rounded-lg shadow-lg"
+                  />
+                </motion.div>
+              ) : null
             )}
           </AnimatePresence>
         </div>
 
-        <PlayerBack name="D" isTurn={turn === "D"} cardCount={hands.D.length} orientation="vertical" />
+        {dealingDone && (
+          <PlayerBack
+            name="D"
+            isTurn={turn === "D"}
+            cardCount={hands.D.length}
+            orientation="vertical"
+          />
+        )}
       </div>
 
       {/* Bottom player (A) */}
       <div
-    className={`transition-transform duration-300 ${
-      turn === "A" ? "scale-110" : "scale-100"
-    }`}
+        className={`transition-transform duration-300 ${
+          turn === "A" ? "scale-110" : "scale-100"
+        }`}
       >
-        <div className="flex justify-center">
-          {hands.A.map((card, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ y: turn === "A" ? -10 : 0 }}
-              onClick={() => playCard("A", i)}
-              className="w-16 h-24 cursor-pointer -ml-8 first:ml-0"
-            >
-              <Image
-                src={getCardImage(card)}
-                alt={`${card.rank} of ${card.suit}`}
-                width={120}
-                height={180}
-                className="w-full h-full object-cover rounded-lg shadow-md"
-              />
-            </motion.div>
-          ))}
-        </div>
+        {dealingDone && (
+          <div className="flex justify-center">
+            {hands.A.map((card, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ y: turn === "A" ? -10 : 0 }}
+                onClick={() => playCard("A", i)}
+                className="w-16 h-24 cursor-pointer -ml-8 first:ml-0"
+              >
+                <Image
+                  src={getCardImage(card)}
+                  alt={`${card.rank} of ${card.suit}`}
+                  width={120}
+                  height={180}
+                  className="w-full h-full object-cover rounded-lg shadow-md"
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
       <p className="text-center text-lg text-slate-300">
-        🔁 Current Turn: <span className="text-yellow-300 font-semibold">{turn}</span>
+        🔁 Current Turn:{" "}
+        <span className="text-yellow-300 font-semibold">{turn}</span>
       </p>
     </div>
   );
@@ -253,9 +422,9 @@ function PlayerBack({
   const cards = Array.from({ length: cardCount });
   return (
     <div
-     className={`transition-transform duration-300 ${
-      isTurn ? "scale-110" : "scale-100"
-    }`}
+      className={`transition-transform duration-300 ${
+        isTurn ? "scale-110" : "scale-100"
+      }`}
     >
       <div
         className={`flex ${
@@ -266,7 +435,9 @@ function PlayerBack({
           <div
             key={i}
             className={`${
-              orientation === "horizontal" ? "w-18 h-16 -ml-12 first:ml-0" : "w-16 h-10 -mt-6 first:mt-0"
+              orientation === "horizontal"
+                ? "w-18 h-16 -ml-12 first:ml-0"
+                : "w-16 h-10 -mt-6 first:mt-0"
             }`}
           >
             <Image
