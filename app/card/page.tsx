@@ -1,146 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
 import PlayerHand from "./components/PlayerHand";
 import PlayerBack from "./components/PlayerBack";
 import CenterCards from "./components/CenterCards";
 import ShuffleAnimation from "./components/ShuffleAnimation";
-import { PLAYER_POSITIONS } from "./utils/positions";
-import { Card, createDeck } from "./utils/cards";
 import DealingAnimation from "./components/DealingAnimation";
+import { useDeck } from "./hooks/useDeck";
+import { useDealing } from "./hooks/useDealing";
+import { useTurnManager } from "./hooks/useTurnManager";
+import { useCenterCards } from "./hooks/useCenterCards";
 
 export default function FourPlayerFlexUI() {
-  const [hands, setHands] = useState<Record<string, Card[]>>({
-    A: [],
-    B: [],
-    C: [],
-    D: [],
-  });
-  const [centerCards, setCenterCards] = useState<Record<string, Card | null>>({
-    A: null,
-    B: null,
-    C: null,
-    D: null,
-  });
-  const [turn, setTurn] = useState<"A" | "B" | "C" | "D">("A");
-  const [animating, setAnimating] = useState(false);
-  const [deck, setDeck] = useState<Card[]>([]);
-  const [shuffling, setShuffling] = useState(true);
-  const [dealingCards, setDealingCards] = useState<
-    { id: number; player: "A" | "B" | "C" | "D" }[]
-  >([]);
+  const {
+    hands,
+    setHands,
+    dealingCards,
+    dealingDone,
+    startDealing,
+    handleCardAnimationComplete,
+  } = useDealing();
 
-  const [completedCards, setCompletedCards] = useState<number[]>([]);
-  const [dealingDone, setDealingDone] = useState(false);
-
-  const handleCardAnimationComplete = (id: number) => {
-    setCompletedCards((prev) => {
-      const updated = [...prev, id];
-      if (updated.length === dealingCards.length) {
-        setDealingDone(true); // only now all cards finished
-      }
-      return updated;
-    });
-  };
-
-  // Start shuffle then deal
-  useEffect(() => {
-    const d = createDeck();
-    setDeck(d);
-    setShuffling(true);
-
-    const timer = setTimeout(() => {
-      const shuffled = [...d].sort(() => Math.random() - 0.5);
-      setDeck(shuffled);
-      setShuffling(false);
-      startDealing(shuffled);
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Animate dealing sequence
-  const startDealing = (deck: Card[]) => {
-    const playerOrder: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
-    let index = 0;
-    const handsProgress = { A: [], B: [], C: [], D: [] } as Record<
-      "A" | "B" | "C" | "D",
-      Card[]
-    >;
-
-    const interval = setInterval(() => {
-      const player = playerOrder[index % 4];
-      const card = deck[index];
-      if (!card) return;
-
-      // Animate card flying
-      setDealingCards((prev) => [
-        ...prev,
-        { id: index, player: player as "A" | "B" | "C" | "D" },
-      ]);
-
-      // Actually add to hand after short delay
-      setTimeout(() => {
-        handsProgress[player].push(card);
-        setHands({ ...handsProgress });
-        setDealingCards((prev) => prev.filter((c) => c.id !== index));
-      }, 600);
-
-      index++;
-      if (index >= deck.length) clearInterval(interval);
-    }, 120);
-  };
-
-  // Normal turn sequence
-  useEffect(() => {
-    if (turn !== "A" && hands[turn].length > 0) {
-      const timer = setTimeout(() => playCard(turn), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [turn]);
-
-  const nextTurn = (current: "A" | "B" | "C" | "D") => {
-    const order: ("A" | "B" | "C" | "D")[] = ["A", "B", "C", "D"];
-    const next = order[(order.indexOf(current) + 1) % order.length];
-    setTurn(next);
-  };
-
-  const playCard = (player: "A" | "B" | "C" | "D", index?: number) => {
-    if (animating) return;
-    const newHands = { ...hands };
-    let chosen: Card | undefined;
-
-    if (player === "A" && index !== undefined) {
-      chosen = newHands[player].splice(index, 1)[0];
-    } else {
-      chosen = newHands[player].splice(
-        Math.floor(Math.random() * newHands[player].length),
-        1
-      )[0];
-    }
-
-    if (!chosen) return;
-    setHands(newHands);
-    setCenterCards((prev) => ({ ...prev, [player]: chosen }));
-    setAnimating(true);
-
-    setTimeout(() => {
-      setAnimating(false);
-      nextTurn(player);
-    }, 800);
-  };
-
-  // Clear center after all 4 have played
-  useEffect(() => {
-    if (Object.values(centerCards).every(Boolean)) {
-      const timer = setTimeout(() => {
-        setCenterCards({ A: null, B: null, C: null, D: null });
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [centerCards]);
+  const { centerCards, setCenterCards } = useCenterCards();
+  const { deck, shuffling } = useDeck(startDealing);
+  const { turn, playCard } = useTurnManager(hands, setHands, setCenterCards);
 
   return (
     <div
@@ -151,13 +33,16 @@ export default function FourPlayerFlexUI() {
         🃏 4 Player Flex Layout
       </h1>
 
-      {/* Shuffle animation */}
       {shuffling && <ShuffleAnimation />}
 
-      {/* Dealing animation */}
-      {!dealingDone && <DealingAnimation dealingCards={dealingCards} onComplete={handleCardAnimationComplete}/>}
+      {!dealingDone && (
+        <DealingAnimation
+          dealingCards={dealingCards}
+          onComplete={handleCardAnimationComplete}
+        />
+      )}
 
-      {/* Top player (C) */}
+      {/* Top Player */}
       <div className="flex justify-center">
         {dealingDone && (
           <PlayerBack
@@ -169,7 +54,7 @@ export default function FourPlayerFlexUI() {
         )}
       </div>
 
-      {/* Center area */}
+      {/* Middle Area */}
       <div className="flex justify-between items-center flex-1 px-16">
         {dealingDone && (
           <PlayerBack
@@ -180,7 +65,6 @@ export default function FourPlayerFlexUI() {
           />
         )}
 
-        {/* Center cards */}
         <CenterCards cards={centerCards} />
 
         {dealingDone && (
@@ -193,7 +77,7 @@ export default function FourPlayerFlexUI() {
         )}
       </div>
 
-      {/* Bottom Player */}
+      {/* Player A */}
       {dealingDone && (
         <PlayerHand
           cards={hands.A}
