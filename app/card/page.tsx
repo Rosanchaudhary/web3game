@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import PlayerHand from "./components/PlayerHand";
 import PlayerBack from "./components/PlayerBack";
 import CenterCards from "./components/CenterCards";
 import ShuffleAnimation from "./components/ShuffleAnimation";
+import { PLAYER_POSITIONS } from "./utils/positions";
 import { Card, createDeck } from "./utils/cards";
 import DealingAnimation from "./components/DealingAnimation";
 
@@ -152,12 +155,7 @@ export default function FourPlayerFlexUI() {
       {shuffling && <ShuffleAnimation />}
 
       {/* Dealing animation */}
-      {!dealingDone && (
-        <DealingAnimation
-          dealingCards={dealingCards}
-          onComplete={handleCardAnimationComplete}
-        />
-      )}
+      {!dealingDone && <DealingAnimation dealingCards={dealingCards} onComplete={handleCardAnimationComplete}/>}
 
       {/* Top player (C) */}
       <div className="flex justify-center">
