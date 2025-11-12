@@ -38,7 +38,14 @@ export default function CenterCards({ cards }: Props) {
                 alt={key}
                 width={90}
                 height={130}
-                className="rounded-lg shadow-lg"
+                className="
+                  rounded-lg shadow-lg
+                  w-16 h-24       
+                  sm:w-20 sm:h-28 
+                  md:w-24 md:h-32 
+                  lg:w-28 lg:h-36
+                  object-contain
+                "
               />
             </motion.div>
           ) : null

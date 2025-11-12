@@ -26,8 +26,8 @@ export default function FourPlayerFlexUI() {
 
   return (
     <div
-      className="min-h-screen flex flex-col text-white p-2 sm:p-4 gap-4 sm:gap-8 overflow-hidden relative
-             bg-[url('/table/table.jpg')] bg-cover bg-center bg-no-repeat"
+      className="min-h-screen w-screen flex flex-col text-white p-2 sm:p-4 gap-4 sm:gap-8 overflow-hidden relative
+             bg-[url('/table/tableTwo.jpg')] sm:bg-[url('/table/table.jpg')] bg-cover bg-center bg-no-repeat"
     >
       <h1 className="text-3xl font-bold text-yellow-400 text-center z-10">
         🃏 4 Player Flex Layout
@@ -55,7 +55,7 @@ export default function FourPlayerFlexUI() {
       </div>
 
       {/* Middle Area */}
-      <div className="flex justify-between items-center flex-1 px-16">
+      <div className="flex justify-between items-center flex-1 px-1 sm:p-16 md:p-10 lg:p-8 ">
         {dealingDone && (
           <PlayerBack
             name="B"
