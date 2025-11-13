@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
-import Score from "@/models/Score";
-import User from "@/models/User";
+import Score from "@/game_server/models/Score";
+import User from "@/game_server/models/User";
 
 export async function GET() {
   await connectDB();

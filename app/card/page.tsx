@@ -1,3 +1,4 @@
+//app/card/page.tsx
 "use client";
 
 import PlayerHand from "./components/PlayerHand";
