@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+//app/card/hooks/useDealing.ts
+import {  useState } from "react";
 import { Card } from "../utils/cards";
 
 type Player = "A" | "B" | "C" | "D";

@@ -1,3 +1,4 @@
+//app/card/components/DealingAnimation.ts
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";

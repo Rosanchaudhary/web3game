@@ -1,3 +1,4 @@
+//app/card/components/CenterCards.ts
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";

@@ -1,3 +1,4 @@
+//app/card/hooks/useTurnManager.ts
 import { useEffect, useState } from "react";
 import { Card } from "../utils/cards";
 
