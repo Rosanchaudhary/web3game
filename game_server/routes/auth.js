@@ -22,9 +22,11 @@ router.post("/register", async function (req, res) {
     await user.save();
 
     const payload = { user: { id: user.id } };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
-    res.json({ token });
+    res.json({ token: token, userId: user.id });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
@@ -42,9 +44,11 @@ router.post("/login", async function (req, res) {
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
     const payload = { user: { id: user.id } };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
-    res.json({ token });
+    res.json({ token: token, userId: user.id });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");

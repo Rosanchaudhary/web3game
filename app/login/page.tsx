@@ -27,9 +27,11 @@ export default function LoginPage() {
       if (!res.ok) throw new Error("Login failed");
 
       const data = await res.json();
-      localStorage.setItem("token", data.token);
 
-      router.push("/dashboard"); // redirect after login
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+
+      router.push("/room"); // redirect after login
     } catch (err: any) {
       setError(err.message);
     } finally {

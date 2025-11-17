@@ -1,3 +1,4 @@
+//app.js
 import createError from "http-errors";
 import express, { json, urlencoded } from "express";
 import { fileURLToPath } from "url";
@@ -10,8 +11,11 @@ import cors from "cors";
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
 import authRouter from "./routes/auth.js";
+import roomRoutes from "./routes/room.js";
+import messageRoutes from "./routes/message.js";
 
-const __filename = fileURLToPath(import.meta.url);
+
+const __filename = fileURLToPath(import.meta.url); 
 const __dirname = dirname(__filename);
 
 const app = express();
@@ -56,6 +60,9 @@ mongoose
 app.use("/", indexRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/messages", messageRoutes);
+
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
