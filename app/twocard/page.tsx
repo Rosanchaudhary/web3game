@@ -1,227 +1,144 @@
+//app/twocard/page.tsx
 "use client";
 
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-// ---------------- CARD UTILS ----------------
-export type Suit = "♠" | "♥" | "♦" | "♣";
-export type Rank =
-  | "A"
-  | "2"
-  | "3"
-  | "4"
-  | "5"
-  | "6"
-  | "7"
-  | "8"
-  | "9"
-  | "10"
-  | "J"
-  | "Q"
-  | "K";
-
-export interface Card {
-  suit: Suit;
-  rank: Rank;
+interface GameRoom {
+  roomId: string;
+  players: { user: string }[];
+  createdAt: string;
 }
 
-const SUITS: Suit[] = ["♠", "♥", "♦", "♣"];
-const RANKS: Rank[] = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K",
-];
+export default function GameLobbyPage() {
+  const router = useRouter();
+  const [rooms, setRooms] = useState<GameRoom[]>([]);
+  const [loading, setLoading] = useState(false);
 
-const createDeck = (): Card[] =>
-  SUITS.flatMap((suit) => RANKS.map((rank) => ({ suit, rank })));
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-// IMAGE PATH
-const getCardImage = (card: Card | null): string => {
-  if (!card) return "/cards/back.png";
-
-  const suits: Record<Suit, string> = {
-    "♠": "spades",
-    "♥": "hearts",
-    "♦": "diamonds",
-    "♣": "clubs",
-  };
-
-  const ranks: Record<Rank, string> = {
-    A: "ace",
-    J: "jack",
-    Q: "queen",
-    K: "king",
-    "10": "10",
-    "9": "9",
-    "8": "8",
-    "7": "7",
-    "6": "6",
-    "5": "5",
-    "4": "4",
-    "3": "3",
-    "2": "2",
-  };
-
-  return `/cards/${ranks[card.rank]}_of_${suits[card.suit]}.png`;
-};
-
-// --------------------------------------------------
-
-export default function TwoPlayerOverlappedPlay() {
-  const [playerADeck, setPlayerADeck] = useState<Card[]>([]);
-  const [playerBDeck, setPlayerBDeck] = useState<Card[]>([]);
-
-  const [centerA, setCenterA] = useState<Card | null>(null);
-  const [centerB, setCenterB] = useState<Card | null>(null);
-
-  const [throwA, setThrowA] = useState(false);
-  const [throwB, setThrowB] = useState(false);
-
-  // ---------- INITIAL DEAL ----------
-  useEffect(() => {
-    const deck = createDeck();
-
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
+  // Fetch active rooms
+  const fetchRooms = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/twocard/active`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      setRooms(data);
+    } catch (err) {
+      console.error(err);
     }
+  };
 
-    const half = Math.floor(deck.length / 2);
-    setPlayerADeck(deck.slice(0, half));
-    setPlayerBDeck(deck.slice(half));
+  useEffect(() => {
+    fetchRooms();
+    const interval = setInterval(fetchRooms, 5000); // refresh every 5s
+    return () => clearInterval(interval);
   }, []);
 
-  // ---------- PLAY CARD ----------
-  const playCard = (card: Card, index: number) => {
-    if (centerA || centerB) return;
+  // Join a room
+  const joinRoom = async (roomId: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/twocard/join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ roomId }),
+        }
+      );
+      if (res.ok) {
+        router.push(`/twocard/${roomId}`);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to join room");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    // Player A plays
-    const updatedA = [...playerADeck];
-    updatedA.splice(index, 1);
-    setPlayerADeck(updatedA);
-    setCenterA(card);
-    setThrowA(true);
-
-    // Player B random
-    // eslint-disable-next-line react-hooks/purity
-    const rand = Math.floor(Math.random() * playerBDeck.length);
-    const bCard = playerBDeck[rand];
-
-    const updatedB = [...playerBDeck];
-    updatedB.splice(rand, 1);
-    setPlayerBDeck(updatedB);
-    setCenterB(bCard);
-    setThrowB(true);
-
-    // Clear
-    setTimeout(() => {
-      setThrowA(false);
-      setThrowB(false);
-      setCenterA(null);
-      setCenterB(null);
-    }, 2000);
+  // Create a new game
+  const createGame = async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/twocard/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      if (data.roomId) {
+        router.push(`/twocard/${data.roomId}`);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-  <div className="h-screen w-screen bg-[#0e0f12] text-white overflow-hidden flex flex-col items-center justify-between py-10 select-none">
-
-    {/* ---------- PLAYER B (Top) ---------- */}
-    <div className="flex flex-col items-center gap-3">
-      <h2 className="text-lg tracking-wide opacity-80">PLAYER B</h2>
-      <div className="relative h-32 w-[80vw] flex justify-center">
-        {playerBDeck.map((_, idx) => (
-          <Image
-            alt="back"
-            width={120}
-            height={180}
-            key={`B-${idx}`}
-            src="/cards/back.png"
-            className="w-16 absolute opacity-90"
-            style={{ left: `${idx * 12}px` }}
-          />
-        ))}
-      </div>
-      <div className="text-sm opacity-50">{playerBDeck.length} cards</div>
-    </div>
-
-    {/* ---------- CENTER TABLE ---------- */}
-    <div className="relative h-60 w-full flex items-center justify-center">
-      <AnimatePresence>
-        {centerA && (
-          <motion.img
-            key="A-thrown"
-            src={getCardImage(centerA)}
-            className="w-24 absolute"
-            initial={{ y: 150, x: -50, rotate: -10, opacity: 0 }}
-            animate={{
-              y: throwA ? 0 : 150,
-              x: throwA ? -20 : -50,
-              rotate: throwA ? 12 : -10,
-              opacity: 1,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 220, damping: 18 }}
-          />
+    <div className="h-screen w-screen flex flex-col md:flex-row bg-[#0e0f12] text-white p-6 gap-6">
+      {/* ---------- ACTIVE ROOMS ---------- */}
+      <div className="flex-1 bg-[#18191f] p-6 overflow-y-auto rounded-lg">
+        <h2 className="text-xl mb-4">Active Game Rooms</h2>
+        {rooms.length === 0 && (
+          <p className="opacity-60">No active rooms. Create one!</p>
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {centerB && (
-          <motion.img
-            key="B-thrown"
-            src={getCardImage(centerB)}
-            className="w-24 absolute"
-            initial={{ y: -150, x: 50, rotate: 10, opacity: 0 }}
-            animate={{
-              y: throwB ? 0 : -150,
-              x: throwB ? 20 : 50,
-              rotate: throwB ? -10 : 10,
-              opacity: 1,
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 220, damping: 18 }}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-
-    {/* ---------- PLAYER A (Bottom) ---------- */}
-    <div className="flex flex-col items-center gap-3 pb-5">
-      <h2 className="text-lg tracking-wide opacity-80">YOU</h2>
-
-      <div className="relative h-32 w-[90vw] flex justify-center">
-        {playerADeck.map((card, idx) => (
-          <Image
-            alt=""
-            width={120}
-            height={180}
-            key={`A-${idx}`}
-            src={getCardImage(card)}
-            className="
-              w-20 absolute cursor-pointer
-              transition-transform duration-150
-              hover:-translate-y-4 hover:scale-105
-              drop-shadow-xl
-            "
-            style={{ left: `${idx * 20}px` }}
-            onClick={() => playCard(card, idx)}
-          />
-        ))}
+        <ul className="space-y-3">
+          {rooms.map((room) => (
+            <li
+              key={room.roomId}
+              className="flex justify-between items-center bg-[#242630] p-3 rounded-md"
+            >
+              <div>
+                <span className="font-semibold">{room.roomId}</span>{" "}
+                <span className="opacity-60">
+                  ({room.players.length}/2)
+                </span>
+              </div>
+              <button
+                className="bg-blue-600 px-3 py-1 rounded hover:bg-blue-700"
+                onClick={() => joinRoom(room.roomId)}
+              >
+                Join
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <div className="text-sm opacity-50">{playerADeck.length} cards</div>
+      {/* ---------- CREATE GAME ---------- */}
+      <div className="w-full md:w-1/3 flex flex-col justify-center items-center bg-[#18191f] p-6 rounded-lg">
+        <h2 className="text-xl mb-6">Start New Game</h2>
+        <button
+          className={`bg-green-600 px-6 py-3 rounded hover:bg-green-700 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+          onClick={createGame}
+          disabled={loading}
+        >
+          {loading ? "Starting..." : "Start Game"}
+        </button>
+      </div>
     </div>
-  </div>
   );
 }

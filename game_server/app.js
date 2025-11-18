@@ -13,6 +13,7 @@ import usersRouter from "./routes/users.js";
 import authRouter from "./routes/auth.js";
 import roomRoutes from "./routes/room.js";
 import messageRoutes from "./routes/message.js";
+import twoCardRoutes from "./routes/twocard.js";
 
 
 const __filename = fileURLToPath(import.meta.url); 
@@ -23,6 +24,7 @@ const app = express();
 // ✅ Fix CORS issue
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://192.168.2.4:3000",
   "https://your-production-site.com"
 ];
 app.use(
@@ -62,6 +64,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/twocard",twoCardRoutes);
 
 
 // catch 404 and forward to error handler

@@ -32,8 +32,8 @@ export default function LoginPage() {
       localStorage.setItem("userId", data.userId);
 
       router.push("/room"); // redirect after login
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      //setError(err.message);
     } finally {
       setLoading(false);
     }
