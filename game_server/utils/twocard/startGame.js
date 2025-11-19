@@ -1,7 +1,7 @@
 //utils/twocard/startGame.js
 export async function startGame(io, room) {
   room.status = "in-progress";
- 
+
   const suits = ["S", "H", "D", "C"];
   const ranks = [
     "A",
