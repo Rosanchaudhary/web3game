@@ -29,26 +29,6 @@ export interface Card {
   rank: Rank;
 }
 
-const SUITS: Suit[] = ["♠", "♥", "♦", "♣"];
-const RANKS: Rank[] = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K",
-];
-
-const createDeck = (): Card[] =>
-  SUITS.flatMap((suit) => RANKS.map((rank) => ({ suit, rank })));
-
 export function parseCard(code: string): Card {
   const suitKey = code.slice(-1); // S, H, D, C
   const rank = code.slice(0, -1) as Rank;
@@ -109,7 +89,9 @@ export default function TwoPlayerOverlappedPlay() {
     typeof window !== "undefined" ? localStorage.getItem("userId") ?? "" : "";
 
   const [playerADeck, setPlayerADeck] = useState<Card[]>([]);
-  const [playerBDeck, setPlayerBDeck] = useState<Card[]>([]);
+  const [playerACount, setPlayerACount] = useState(0);
+  const [playerBCount, setPlayerBCount] = useState(0);
+  const [turn, setTurn] = useState<string | null>(null);
 
   const [centerA, setCenterA] = useState<Card | null>(null);
   const [centerB, setCenterB] = useState<Card | null>(null);
@@ -117,68 +99,26 @@ export default function TwoPlayerOverlappedPlay() {
   const [throwA, setThrowA] = useState(false);
   const [throwB, setThrowB] = useState(false);
 
-  // ---------- INITIAL DEAL ----------
-  useEffect(() => {
-    const deck = createDeck();
-
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-
-    const half = Math.floor(deck.length / 2);
-    //setPlayerADeck(deck.slice(0, half));
-    setPlayerBDeck(deck.slice(half));
-  }, []);
-
-  async function playGame(card: Card) {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-    if (!token) {
-      console.warn("No token found");
-      return;
-    }
-
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/twocard`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ roomId: "1234", card }),
-    });
+  // Convert { suit: "♠", rank: "A" } → "A♠" → backend format "AS"
+  function encodeCard(card: Card): string {
+    const suitMap: Record<Suit, string> = {
+      "♠": "S",
+      "♥": "H",
+      "♦": "D",
+      "♣": "C",
+    };
+    return `${card.rank}${suitMap[card.suit]}`;
   }
 
-  // ---------- PLAY CARD ----------
-  const playCard = (card: Card, index: number) => {
-    if (centerA || centerB) return;
-
-    // Player A plays
-    const updatedA = [...playerADeck];
-    updatedA.splice(index, 1);
-    setPlayerADeck(updatedA);
-    setCenterA(card);
-    setThrowA(true);
-    playGame(card);
-    // Player B random
-    // eslint-disable-next-line react-hooks/purity
-    const rand = Math.floor(Math.random() * playerBDeck.length);
-    const bCard = playerBDeck[rand];
-
-    const updatedB = [...playerBDeck];
-    updatedB.splice(rand, 1);
-    setPlayerBDeck(updatedB);
-    setCenterB(bCard);
-    setThrowB(true);
-
-    // Clear
-    setTimeout(() => {
-      setThrowA(false);
-      setThrowB(false);
-      setCenterA(null);
-      setCenterB(null);
-    }, 2000);
+  // ------------- PLAY A CARD -------------
+  const playCard = (card: Card) => {
+    if (turn !== userId) return;
+    const encodedCard = encodeCard(card);
+    socketRef.current?.emit("play-card", {
+      roomId,
+      userId,
+      card: encodedCard,
+    });
   };
 
   useEffect(() => {
@@ -190,26 +130,77 @@ export default function TwoPlayerOverlappedPlay() {
     socket.emit("join-room", { roomId, userId });
 
     socket.on("game-started", (data) => {
-      console.log("Game started:", data);
+      const opponentId = data.players.find((p: string) => p !== userId);
+      if (!opponentId) return;
+
+      setTurn(data.turn);
+
+      // initial opponent card count
+      const oppCount = data.counts?.[opponentId] ?? 23;
+      setPlayerBCount(oppCount);
     });
+
+    // When any card is played
+    socket.on("card-played", ({ userId: who, card }) => {
+      const parsed = typeof card === "string" ? parseCard(card) : card;
+
+      if (who === userId) {
+        // PLAYER A played a card → remove from hand
+        setPlayerADeck((prev) =>
+          prev.filter(
+            (c) => !(c.rank === parsed.rank && c.suit === parsed.suit)
+          )
+        );
+
+        setThrowA(true);
+        setCenterA(parsed);
+      } else {
+        // PLAYER B played a card → reduce count
+        setPlayerBCount((prev) => Math.max(prev - 1, 0));
+
+        setThrowB(true);
+        setCenterB(parsed);
+      }
+    });
+
     socket.on("your-hand", (cards: string[]) => {
-      // Convert "AH" to your Card format if needed
-    //   const mapped = cards.map((c) => ({
-    //     rank: c.slice(0, -1),
-    //     suit: c.slice(-1),
-    //   }));
-    //   console.log(mapped);
-
-    //   setPlayerADeck(mapped);
-
       const parsed = cards.map(parseCard);
       setPlayerADeck(parsed);
+    });
+    // Turn swap
+    socket.on("turn-updated", ({ turn }) => {
+      console.log("Setting player turn", turn);
+      setTurn(turn);
+    });
+
+    // Turn swap
+    socket.on("card-count-updated", ({ userId: who, count }) => {
+      if (who === userId) {
+        setPlayerACount(count);
+      } else {
+        // PLAYER B played a card → reduce count
+        setPlayerBCount(count);
+      }
     });
 
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [roomId, userId]);
+
+  // Cleanup after both players have thrown
+  useEffect(() => {
+    if (throwA && throwB) {
+      const t = setTimeout(() => {
+        setThrowA(false);
+        setThrowB(false);
+        setCenterA(null);
+        setCenterB(null);
+      }, 2000);
+
+      return () => clearTimeout(t);
+    }
+  }, [throwA, throwB]);
 
   return (
     <div className="h-screen w-screen bg-[#0e0f12] text-white overflow-hidden flex flex-col items-center justify-between py-6 sm:py-10 select-none">
@@ -221,7 +212,7 @@ export default function TwoPlayerOverlappedPlay() {
 
         <div className="flex justify-center w-full">
           <div className="flex justify-center items-start gap-0">
-            {playerBDeck.map((_, idx) => (
+            {Array.from({ length: playerBCount }).map((_, idx) => (
               <div
                 key={idx}
                 className="
@@ -242,7 +233,7 @@ export default function TwoPlayerOverlappedPlay() {
         </div>
 
         <div className="text-xs sm:text-sm opacity-50">
-          {playerBDeck.length} cards
+          {playerBCount} cards
         </div>
       </div>
 
@@ -310,7 +301,7 @@ export default function TwoPlayerOverlappedPlay() {
                   height={180}
                   src={getCardImage(card)}
                   className="w-16 sm:w-20 drop-shadow-xl cursor-pointer"
-                  onClick={() => playCard(card, idx)}
+                  onClick={() => playCard(card)}
                 />
               </div>
             ))}
@@ -318,7 +309,7 @@ export default function TwoPlayerOverlappedPlay() {
         </div>
 
         <div className="text-xs sm:text-sm opacity-50">
-          {playerADeck.length} cards
+          {playerACount} cards
         </div>
       </div>
     </div>
