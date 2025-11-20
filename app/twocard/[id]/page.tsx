@@ -42,6 +42,21 @@ export default function TwoPlayerOverlappedPlay() {
       // initial opponent card count
       const oppCount = data.counts?.[opponentId] ?? 23;
       setPlayerBCount(oppCount);
+
+      if (data.centerPile) {
+        Object.entries(data.centerPile).forEach(([id, card]) => {
+           const parsed = parseCard(card as string); // convert string → Card
+          if (id === userId) {
+            // my card
+            setThrowA(true);
+            setCenterA(parsed);
+          } else {
+            // opponent card
+            setThrowB(true);
+            setCenterB(parsed);
+          }
+        });
+      }
     });
 
     // When any card is played
@@ -87,24 +102,19 @@ export default function TwoPlayerOverlappedPlay() {
       }
     });
 
+    socket.on("clear-center", () => {
+      setThrowA(false);
+      setThrowB(false);
+      setCenterA(null);
+      setCenterB(null);
+    });
+
     return () => {
       socket.disconnect();
     };
   }, [roomId, userId]);
 
-  // Cleanup after both players have thrown
-  useEffect(() => {
-    if (throwA && throwB) {
-      const t = setTimeout(() => {
-        setThrowA(false);
-        setThrowB(false);
-        setCenterA(null);
-        setCenterB(null);
-      }, 2000);
 
-      return () => clearTimeout(t);
-    }
-  }, [throwA, throwB]);
 
   return (
     <div className="h-screen w-screen bg-[#0e0f12] text-white overflow-hidden flex flex-row sm:flex-col items-center justify-between py-6 sm:py-10 select-none">
@@ -204,7 +214,7 @@ export default function TwoPlayerOverlappedPlay() {
                   width={120}
                   height={180}
                   src={getCardImage(card)}
-                  className="w-16 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
+                  className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
                   onClick={() => playCard(card, roomId, turn, userId)}
                 />
               </div>

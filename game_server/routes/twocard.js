@@ -103,6 +103,20 @@ router.post("/play-card", async (req, res) => {
     room.hands.set(userId, hand);
     room.markModified("hands");
 
+    // push to center pile
+    room.centerPile.set(userId, card);
+    room.markModified("centerPile");
+
+    // if both cards played
+    if (room.centerPile.size >= 2) {
+      room.centerPile = new Map();
+      room.markModified("centerPile");
+
+      setTimeout(() => {
+        io.to(roomId).emit("clear-center");
+      }, 2000);
+    }
+
     // switch turn
     const players = room.players.map((p) => p.user.toString());
     room.turn = players.find((p) => p !== userId);

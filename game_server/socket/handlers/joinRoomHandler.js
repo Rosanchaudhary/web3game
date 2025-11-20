@@ -34,6 +34,7 @@ export default function joinRoomHandler(io, socket) {
         counts: Object.fromEntries(
           room.players.map((p) => [p.user, room.hands.get(p.user).length])
         ),
+        centerPile:room.centerPile
       });
 
       io.to(room.players[0].socketId).emit("your-hand", room.hands.get(p1));

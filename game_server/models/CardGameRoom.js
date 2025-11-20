@@ -41,8 +41,9 @@ const CardGameRoomSchema = new Schema(
     },
 
     centerPile: {
-      type: [String],
-      default: [],
+      type: Map,
+      of: String, // { userId: "7H" }
+      default: {},
     },
 
     turn: {
