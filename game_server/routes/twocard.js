@@ -76,4 +76,57 @@ router.post("/join", auth, async (req, res) => {
   res.json({ status: "joined" });
 });
 
+router.post("/play-card", async (req, res) => {
+  const io = req.app.get("io");
+  const { roomId, userId, card } = req.body;
+
+  try {
+    const room = await CardGameRoom.findOne({ roomId });
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // turn validation
+    if (room.turn !== userId) {
+      return res.status(403).json({ error: "Not your turn" });
+    }
+
+    // remove card
+    const hand = room.hands.get(userId);
+    const index = hand.indexOf(card);
+
+    if (index === -1) {
+      return res.status(400).json({ error: "Invalid card" });
+    }
+
+    hand.splice(index, 1);
+    room.hands.set(userId, hand);
+    room.markModified("hands");
+
+    // switch turn
+    const players = room.players.map((p) => p.user.toString());
+    room.turn = players.find((p) => p !== userId);
+
+    await room.save();
+
+    // broadcast to room
+    io.to(roomId).emit("card-played", { userId, card });
+    io.to(roomId).emit("turn-updated", { turn: room.turn });
+    io.to(roomId).emit("card-count-updated", {
+      userId,
+      count: hand.length,
+    });
+
+    return res.json({
+      success: true,
+      message: "Card played",
+      turn: room.turn,
+      count: hand.length,
+    });
+  } catch (err) {
+    console.error("play-card route error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 export default router;
