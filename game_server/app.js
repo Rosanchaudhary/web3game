@@ -25,6 +25,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://192.168.2.4:3000",
+  "http://192.168.1.79:3000",
   "https://your-production-site.com"
 ];
 app.use(

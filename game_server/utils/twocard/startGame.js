@@ -30,32 +30,69 @@ export async function startGame(io, room) {
 
   const half = deck.length / 2;
 
-  const p1 = room.players[0].user.toString();
-  const p2 = room.players[1].user.toString();
+  const p1 = room.players[0].user._id.toString();
+  const p2 = room.players[1].user._id.toString();
 
-  room.hands.set(p1, deck.slice(0, half));
-  room.hands.set(p2, deck.slice(half));
+  // ---- Initialize playerState if missing ----
+  if (!room.playerState.has(p1)) {
+    room.playerState.set(p1, {
+      name: room.players[0].user.name,
+      hand: [],
+      center: null,
+      throw: false,
+      count: 0,
+      isTurn: false,
+    });
+  }
 
-  room.turn = p1;
+  if (!room.playerState.has(p2)) {
+    room.playerState.set(p2, {
+      name: room.players[1].user.name,
+      hand: [],
+      center: null,
+      throw: false,
+      count: 0,
+      isTurn: false,
+    });
+  }
+
+  // ---- Assign hands ----
+  room.playerState.get(p1).hand = deck.slice(0, half);
+  room.playerState.get(p2).hand = deck.slice(half);
+
+  // ---- Set whose turn ----
+  room.playerState.get(p1).isTurn = true;
+  room.playerState.get(p2).isTurn = false;
+
+  // ---- Save full deck (optional) ----
   room.deck = deck;
 
   await room.save();
 
   // Broadcast game start
-  io.to(room.roomId).emit("game-started", {
-    players: room.players.map((p) => p.user),
-    turn: room.turn,
-    counts: Object.fromEntries(
-      room.players.map((p) => [p.user, room.hands.get(p.user).length])
-    ),
+  // Extract public player state for everyone
+  const publicState = {};
+
+  room.playerState.forEach((state, userId) => {
+    publicState[userId] = {
+      count: state.hand.length,
+      center: null, // initial center is empty
+      throw: false, // initial throw is false
+      name: state.name,
+      isTurn: state.isTurn,
+    };
   });
 
-  // Send each player's own hand
-  const s1 = room.players[0].socketId;
-  const s2 = room.players[1].socketId;
+  // Broadcast to all players once
+  io.to(room.roomId).emit("player-update", publicState);
 
-  io.to(s1).emit("your-hand", room.hands.get(p1));
-  io.to(s2).emit("your-hand", room.hands.get(p2));
+  // Send each player their own hand privately
+  room.players.forEach((player) => {
+    const userId = player.user._id.toString();
+    const socketId = player.socketId;
+    const hand = room.playerState.get(userId)?.hand || [];
+    console.log("The hand", hand);
 
-  console.log("🔥 Game started for room", room.roomId);
+    io.to(socketId).emit("your-hand", hand);
+  });
 }

@@ -59,21 +59,30 @@ router.get("/active", async (req, res) => {
 // ------------------ JOIN GAME ------------------
 router.post("/join", auth, async (req, res) => {
   const { roomId } = req.body;
-  const room = await CardGameRoom.findOne({ roomId });
+
+  let room = await CardGameRoom.findOne({ roomId });
   if (!room) return res.status(404).json({ error: "Not found" });
 
-  if (room.players.length >= 2)
+  // Prevent duplicate joining
+  if (room.players.some((p) => p.user.toString() === req.user.id)) {
+    return res.status(400).json({ error: "Already joined" });
+  }
+
+  // Room full
+  if (room.players.length >= 2) {
     return res.status(400).json({ error: "Room full" });
+  }
 
   // Add player
   room.players.push({ user: req.user.id });
 
-  // No game start here!
-  if (room.players.length === 1) room.status = "waiting";
-  if (room.players.length === 2) room.status = "ready";
+  if (room.players.length === 2) {
+    room.status = "ready";
+  }
 
   await room.save();
-  res.json({ status: "joined" });
+
+  return res.json({ status: "joined" });
 });
 
 router.post("/play-card", async (req, res) => {
@@ -82,61 +91,90 @@ router.post("/play-card", async (req, res) => {
 
   try {
     const room = await CardGameRoom.findOne({ roomId });
-    if (!room) {
-      return res.status(404).json({ error: "Room not found" });
+    if (!room) return res.status(404).json({ error: "Room not found" });
+
+    const player = room.playerState.get(userId);
+    if (!player) return res.status(404).json({ error: "Player not found" });
+
+    // validate turn
+    if (!player.isTurn) return res.status(403).json({ error: "Not your turn" });
+
+    // validate card
+    const cardIndex = player.hand.indexOf(card);
+    if (cardIndex === -1)
+      return res.status(400).json({ error: "Card not in hand" });
+
+    // apply move
+    player.hand.splice(cardIndex, 1);
+    player.center = card;
+    player.isTurn = false;
+    player.throw = true;
+    room.playerState.set(userId, player);
+
+    // set turn for next player
+    let assigned = false;
+    for (const [id, p] of room.playerState.entries()) {
+      if (!assigned && id !== userId) {
+        p.isTurn = true;
+        room.playerState.set(id, p);
+        assigned = true;
+      }
     }
-
-    // turn validation
-    if (room.turn !== userId) {
-      return res.status(403).json({ error: "Not your turn" });
-    }
-
-    // remove card
-    const hand = room.hands.get(userId);
-    const index = hand.indexOf(card);
-
-    if (index === -1) {
-      return res.status(400).json({ error: "Invalid card" });
-    }
-
-    hand.splice(index, 1);
-    room.hands.set(userId, hand);
-    room.markModified("hands");
-
-    // push to center pile
-    room.centerPile.set(userId, card);
-    room.markModified("centerPile");
-
-    // if both cards played
-    if (room.centerPile.size >= 2) {
-      room.centerPile = new Map();
-      room.markModified("centerPile");
-
-      setTimeout(() => {
-        io.to(roomId).emit("clear-center");
-      }, 2000);
-    }
-
-    // switch turn
-    const players = room.players.map((p) => p.user.toString());
-    room.turn = players.find((p) => p !== userId);
 
     await room.save();
 
-    // broadcast to room
-    io.to(roomId).emit("card-played", { userId, card });
-    io.to(roomId).emit("turn-updated", { turn: room.turn });
-    io.to(roomId).emit("card-count-updated", {
-      userId,
-      count: hand.length,
+    // broadcast public state
+    const publicState = {};
+    room.playerState.forEach((state, uid) => {
+      publicState[uid] = {
+        name: state.name,
+        count: state.hand.length,
+        center: state.center,
+        throw: state.throw,
+        isTurn: state.isTurn,
+      };
     });
 
-    return res.json({
-      success: true,
-      message: "Card played",
-      turn: room.turn,
-      count: hand.length,
-    });
+    io.to(room.roomId).emit("player-update", publicState);
+
+    // --- AUTO RESET WHEN ALL THROW = TRUE ---
+    const allThrown = [...room.playerState.values()].every(
+      (p) => p.throw === true
+    );
+
+    if (allThrown) {
+      setTimeout(async () => {
+        try {
+          const freshRoom = await CardGameRoom.findOne({ roomId });
+          if (!freshRoom) return;
+
+          freshRoom.playerState.forEach((p, uid) => {
+            p.throw = false;
+            p.center = null;
+            freshRoom.playerState.set(uid, p);
+          });
+
+          await freshRoom.save();
+
+          const updatedState = {};
+          freshRoom.playerState.forEach((state, uid) => {
+            updatedState[uid] = {
+              name: state.name,
+              count: state.hand.length,
+              center: state.center,
+              throw: state.throw,
+              isTurn: state.isTurn,
+            };
+          });
+
+          io.to(freshRoom.roomId).emit("player-update", updatedState);
+        } catch (err) {
+          console.error("Throw reset failed:", err);
+        }
+      }, 2000);
+    }
+
+    return res.json({ success: true });
   } catch (err) {
     console.error("play-card route error:", err);
     return res.status(500).json({ error: "Server error" });

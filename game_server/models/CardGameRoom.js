@@ -1,7 +1,32 @@
-//models/CardGameRoom.js
+// models/CardGameRoom.js
 import mongoose from "mongoose";
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
+
+const PlayerStateSchema = new Schema(
+  {
+    name: { type: String },
+    center: { type: String, default: null },
+    throw: { type: Boolean, default: false },
+    hand: { type: [String], default: [] },
+    isTurn: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
+const PlayerSchema = new Schema(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    socketId: String,
+    joinedAt: { type: Date, default: Date.now },
+    lastActive: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
 
 const CardGameRoomSchema = new Schema(
   {
@@ -11,16 +36,7 @@ const CardGameRoomSchema = new Schema(
       required: true,
     },
 
-    players: [
-      {
-        user: {
-          type: Schema.Types.ObjectId,
-          ref: "User",
-        },
-        socketId: { type: String }, // helpful for disconnect/reconnect
-        joinedAt: { type: Date, default: Date.now },
-      },
-    ],
+    players: [PlayerSchema],
 
     status: {
       type: String,
@@ -28,43 +44,31 @@ const CardGameRoomSchema = new Schema(
       default: "waiting",
     },
 
-    // --- GAME STATE ---
     deck: {
-      type: [String], // ["AS", "5H", "KD", ...]
+      type: [String],
       default: [],
     },
 
-    hands: {
+    playerState: {
       type: Map,
-      of: [String], // { userId: ["AH", "2D", "9C"] }
+      of: PlayerStateSchema,
       default: {},
     },
 
-    centerPile: {
-      type: Map,
-      of: String, // { userId: "7H" }
-      default: {},
+    stateLocked: {
+      type: Boolean,
+      default: false,
     },
 
-    turn: {
-      type: String, // userId of current turn
-      default: null,
-    },
-
-    // Cleanup or filtering
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 1000 * 60 * 60), // 1 hr expiry
+      default: () => new Date(Date.now() + 60 * 60 * 1000),
     },
   },
   { timestamps: true }
 );
 
-// Auto-remove expired rooms (optional)
 CardGameRoomSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-const CardGameRoom =
-  mongoose.models.CardGameRoom ||
+export default mongoose.models.CardGameRoom ||
   mongoose.model("CardGameRoom", CardGameRoomSchema);
-
-export default CardGameRoom;

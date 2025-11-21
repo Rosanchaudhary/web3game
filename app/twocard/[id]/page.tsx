@@ -2,11 +2,19 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { io, Socket } from "socket.io-client";
 import { useParams } from "next/navigation";
-import { Card, getCardImage, parseCard, playCard } from "../utils";
+import { Card, encodeCard, getCardImage, parseCard } from "../utils";
+
+type PlayerState = {
+  count: number;
+  center: Card | null;
+  throw: boolean;
+  name: string;
+  isTurn: boolean;
+};
 
 export default function TwoPlayerOverlappedPlay() {
   const socketRef = useRef<Socket | null>(null);
@@ -14,16 +22,57 @@ export default function TwoPlayerOverlappedPlay() {
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("userId") ?? "" : "";
 
+  const [players, setPlayers] = useState<Record<string, PlayerState>>({});
   const [playerADeck, setPlayerADeck] = useState<Card[]>([]);
-  const [playerACount, setPlayerACount] = useState(0);
-  const [playerBCount, setPlayerBCount] = useState(0);
-  const [turn, setTurn] = useState<string | null>(null);
 
-  const [centerA, setCenterA] = useState<Card | null>(null);
-  const [centerB, setCenterB] = useState<Card | null>(null);
+  const updatePlayer = (userId: string, data: Partial<PlayerState>) => {
+    setPlayers((prev) => ({
+      ...prev,
+      [userId]: {
+        // if player doesn't exist yet, initialize them
+        count: prev[userId]?.count ?? 0,
+        center: prev[userId]?.center ?? null,
+        throw: prev[userId]?.throw ?? false,
+        name: prev[userId]?.name ?? "",
+        isTurn: prev[userId]?.isTurn ?? false,
+        ...data,
+      },
+    }));
+  };
 
-  const [throwA, setThrowA] = useState(false);
-  const [throwB, setThrowB] = useState(false);
+  const { me, others } = useMemo(() => {
+    const me = players[userId];
+    const others = Object.entries(players)
+      .filter(([id]) => id !== userId)
+      .map(([id, p]) => ({ id, ...p }));
+
+    return { me, others };
+  }, [players, userId]);
+
+  // ------------- PLAY A CARD -------------
+  const playCard = async (
+    card: Card,
+    roomId: string,
+    turn: boolean | null,
+    userId: string,
+    index: number
+  ) => {
+    if (!turn) return;
+    setPlayerADeck((prev) => prev.filter((_, i) => i !== index));
+    const encodedCard = encodeCard(card);
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) return;
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/twocard/play-card`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ roomId, userId, card: encodedCard }),
+    });
+  };
 
   useEffect(() => {
     const socket: Socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
@@ -33,80 +82,17 @@ export default function TwoPlayerOverlappedPlay() {
 
     socket.emit("join-room", { roomId, userId });
 
-    socket.on("game-started", (data) => {
-      const opponentId = data.players.find((p: string) => p !== userId);
-      if (!opponentId) return;
-
-      setTurn(data.turn);
-
-      // initial opponent card count
-      const oppCount = data.counts?.[opponentId] ?? 23;
-      setPlayerBCount(oppCount);
-
-      if (data.centerPile) {
-        Object.entries(data.centerPile).forEach(([id, card]) => {
-           const parsed = parseCard(card as string); // convert string → Card
-          if (id === userId) {
-            // my card
-            setThrowA(true);
-            setCenterA(parsed);
-          } else {
-            // opponent card
-            setThrowB(true);
-            setCenterB(parsed);
-          }
-        });
-      }
-    });
-
-    // When any card is played
-    socket.on("card-played", ({ userId: who, card }) => {
-      const parsed = typeof card === "string" ? parseCard(card) : card;
-
-      if (who === userId) {
-        // PLAYER A played a card → remove from hand
-        setPlayerADeck((prev) =>
-          prev.filter(
-            (c) => !(c.rank === parsed.rank && c.suit === parsed.suit)
-          )
-        );
-
-        setThrowA(true);
-        setCenterA(parsed);
-      } else {
-        // PLAYER B played a card → reduce count
-        setPlayerBCount((prev) => Math.max(prev - 1, 0));
-
-        setThrowB(true);
-        setCenterB(parsed);
-      }
+    socket.on("player-update", (data) => {
+      Object.entries(data as Record<string, Partial<PlayerState>>).forEach(
+        ([userId, player]) => {
+          updatePlayer(userId, player);
+        }
+      );
     });
 
     socket.on("your-hand", (cards: string[]) => {
       const parsed = cards.map(parseCard);
       setPlayerADeck(parsed);
-    });
-    // Turn swap
-    socket.on("turn-updated", ({ turn }) => {
-      console.log("Setting player turn", turn);
-      setTurn(turn);
-    });
-
-    // Turn swap
-    socket.on("card-count-updated", ({ userId: who, count }) => {
-      if (who === userId) {
-        setPlayerACount(count);
-      } else {
-        // PLAYER B played a card → reduce count
-        setPlayerBCount(count);
-      }
-    });
-
-    socket.on("clear-center", () => {
-      setThrowA(false);
-      setThrowB(false);
-      setCenterA(null);
-      setCenterB(null);
     });
 
     return () => {
@@ -114,19 +100,19 @@ export default function TwoPlayerOverlappedPlay() {
     };
   }, [roomId, userId]);
 
-
-
   return (
     <div className="h-screen w-screen bg-[#0e0f12] text-white overflow-hidden flex flex-row sm:flex-col items-center justify-between py-6 sm:py-10 select-none">
       {/* ---------- PLAYER B (Top) ---------- */}
       <div className="flex flex-col items-center gap-2 sm:gap-3 -rotate-90 sm:rotate-0">
         <h2 className="text-base sm:text-lg tracking-wide opacity-80">
-          PLAYER B
+          {others.length > 0 ? others[0].name : "Waiting"}
         </h2>
 
         <div className="flex justify-center w-full">
           <div className="flex justify-center items-start gap-0">
-            {Array.from({ length: playerBCount }).map((_, idx) => (
+            {Array.from({
+              length: others.length > 0 ? others[0].count : 0,
+            }).map((_, idx) => (
               <div
                 key={idx}
                 className="
@@ -147,23 +133,23 @@ export default function TwoPlayerOverlappedPlay() {
         </div>
 
         <div className="text-xs sm:text-sm opacity-50">
-          {playerBCount} cards
+          {others.length > 0 ? others[0].count : 0} cards
         </div>
       </div>
 
       {/* ---------- CENTER TABLE ---------- */}
       <div className="relative h-40 sm:h-60 w-full flex items-center justify-center -rotate-90 sm:rotate-0">
         <AnimatePresence>
-          {centerA && (
+          {others.length > 0 && others[0].center && (
             <motion.img
               key="A-thrown"
-              src={getCardImage(centerA)}
+              src={getCardImage(others[0].center)}
               className="absolute w-12 sm:w-24"
               initial={{ y: 150, x: -50, rotate: -10, opacity: 0 }}
               animate={{
-                y: throwA ? 0 : 150,
-                x: throwA ? -20 : -50,
-                rotate: throwA ? 12 : -10,
+                y: others[0].throw ? 0 : 150,
+                x: others[0].throw ? -20 : -50,
+                rotate: others[0].throw ? 12 : -10,
                 opacity: 1,
               }}
               exit={{ opacity: 0 }}
@@ -173,16 +159,16 @@ export default function TwoPlayerOverlappedPlay() {
         </AnimatePresence>
 
         <AnimatePresence>
-          {centerB && (
+          {me && me.center && (
             <motion.img
               key="B-thrown"
-              src={getCardImage(centerB)}
+              src={getCardImage(me.center)}
               className="absolute w-12 sm:w-24"
               initial={{ y: -150, x: 50, rotate: 10, opacity: 0 }}
               animate={{
-                y: throwB ? 0 : -150,
-                x: throwB ? 20 : 50,
-                rotate: throwB ? -10 : 10,
+                y: me.throw ? 0 : -150,
+                x: me.throw ? 20 : 50,
+                rotate: me.throw ? -10 : 10,
                 opacity: 1,
               }}
               exit={{ opacity: 0 }}
@@ -194,36 +180,41 @@ export default function TwoPlayerOverlappedPlay() {
 
       {/* ---------- PLAYER A (Bottom) ---------- */}
       <div className="flex flex-col items-center gap-2 sm:gap-3 pb-4 rotate-270 sm:rotate-0">
-        <h2 className="text-base sm:text-lg tracking-wide opacity-80">YOU</h2>
+        <h2 className="text-base sm:text-lg tracking-wide opacity-80">
+          {me && me.name}
+        </h2>
 
         <div className="flex justify-center w-full">
           <div className="flex justify-center items-end gap-0">
-            {playerADeck.map((card, idx) => (
-              <div
-                key={idx}
-                className="
+            {me &&
+              playerADeck.map((card, idx) => (
+                <div
+                  key={idx}
+                  className="
             -ml-2 sm:-ml-12 
             first:ml-0
             transition-transform duration-150
             hover:-translate-y-3 sm:hover:-translate-y-4
             hover:scale-105
           "
-              >
-                <Image
-                  alt=""
-                  width={120}
-                  height={180}
-                  src={getCardImage(card)}
-                  className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
-                  onClick={() => playCard(card, roomId, turn, userId)}
-                />
-              </div>
-            ))}
+                >
+                  <Image
+                    alt=""
+                    width={120}
+                    height={180}
+                    src={getCardImage(card)}
+                    className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
+                    onClick={() =>
+                      playCard(card, roomId, me.isTurn, userId, idx)
+                    }
+                  />
+                </div>
+              ))}
           </div>
         </div>
 
         <div className="text-xs sm:text-sm opacity-50">
-          {playerACount} cards
+          {me ? me.count : 0} cards
         </div>
       </div>
     </div>
