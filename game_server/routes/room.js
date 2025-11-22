@@ -8,17 +8,17 @@ const router = express.Router();
 // Create room
 router.post("/", auth, async (req, res) => {
   try {
-    console.log(req.user)
+
     
     const room = await Room.create({
       name: req.body.name,
       participants: [{ userId: req.user.id }],
     });
-    console.log(room)
+
 
     res.json(room);
   } catch (err) {
-    console.log(err)
+
     res.status(500).json({ error: err.message });
   }
 });

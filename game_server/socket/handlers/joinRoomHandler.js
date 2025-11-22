@@ -1,22 +1,40 @@
 import CardGameRoom from "../../models/CardGameRoom.js";
 import { startGame } from "../../utils/twocard/startGame.js";
 
+export function parsePlayers(data) {
+  const result = {};
+
+  data.forEach((player) => {
+    result[player.user._id.toString()] = {
+      userId: player.user._id.toString(),
+      name: player.user.name,
+      center: player.center,
+      throw: player.throw,
+      hand: player.hand,
+      count: player.hand.length,
+    };
+  });
+
+  return result;
+}
+
 export default function joinRoomHandler(io, socket) {
   socket.on("join-room", async ({ roomId, userId }) => {
     socket.join(roomId);
     console.log(`User ${userId} joined room ${roomId}`);
 
     // Update DB
-    await CardGameRoom.updateOne(
+    const room = await CardGameRoom.findOneAndUpdate(
       { roomId, "players.user": userId },
-      { $set: { "players.$.socketId": socket.id } }
-    );
+      {
+        $set: {
+          "players.$.socketId": socket.id,
+          "players.$.lastActive": new Date(),
+        },
+      },
+      { new: true }
+    ).populate("players.user", "name"); // only return the name field
 
-    const room = await CardGameRoom.findOne({ roomId }).populate(
-      "players.user",
-      "name"
-    );
-    console.log(room.players[0].user);
     if (!room) return;
 
     const allConnected =
@@ -27,27 +45,18 @@ export default function joinRoomHandler(io, socket) {
     }
 
     if (allConnected && room.status === "in-progress") {
-      const publicState = {};
-
-      room.playerState.forEach((state, userId) => {
-        publicState[userId] = {
-          count: state.hand.length,
-          center: state.center,
-          throw: state.throw,
-          name: state.name,
-          isTurn: state.isTurn,
-        };
-      });
+      const playerState = parsePlayers(room.players);
 
       // Broadcast to all players once
-      io.to(room.roomId).emit("player-update", publicState);
+      io.to(room.roomId).emit("player-update", {
+        playerState,
+        turn: room.turn,
+      });
 
       // Send each player their own hand privately
       room.players.forEach((player) => {
-        const userId = player.user._id.toString();
         const socketId = player.socketId;
-        const hand = room.playerState.get(userId)?.hand || [];
-
+        const hand = player.hand || [];
         io.to(socketId).emit("your-hand", hand);
       });
     }

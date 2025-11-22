@@ -24,6 +24,7 @@ export default function TwoPlayerOverlappedPlay() {
 
   const [players, setPlayers] = useState<Record<string, PlayerState>>({});
   const [playerADeck, setPlayerADeck] = useState<Card[]>([]);
+  const [turn, setTurn] = useState<string>("");
 
   const updatePlayer = (userId: string, data: Partial<PlayerState>) => {
     setPlayers((prev) => ({
@@ -53,11 +54,10 @@ export default function TwoPlayerOverlappedPlay() {
   const playCard = async (
     card: Card,
     roomId: string,
-    turn: boolean | null,
     userId: string,
     index: number
   ) => {
-    if (!turn) return;
+    if (turn !== userId) return;
     setPlayerADeck((prev) => prev.filter((_, i) => i !== index));
     const encodedCard = encodeCard(card);
     const token =
@@ -83,11 +83,12 @@ export default function TwoPlayerOverlappedPlay() {
     socket.emit("join-room", { roomId, userId });
 
     socket.on("player-update", (data) => {
-      Object.entries(data as Record<string, Partial<PlayerState>>).forEach(
-        ([userId, player]) => {
-          updatePlayer(userId, player);
-        }
-      );
+      setTurn(data.turn)
+      Object.entries(
+        data.playerState as Record<string, Partial<PlayerState>>
+      ).forEach(([userId, player]) => {
+        updatePlayer(userId, player);
+      });
     });
 
     socket.on("your-hand", (cards: string[]) => {
@@ -205,7 +206,7 @@ export default function TwoPlayerOverlappedPlay() {
                     src={getCardImage(card)}
                     className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
                     onClick={() =>
-                      playCard(card, roomId, me.isTurn, userId, idx)
+                      playCard(card, roomId, userId, idx)
                     }
                   />
                 </div>

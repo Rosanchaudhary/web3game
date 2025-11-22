@@ -31,7 +31,8 @@ export default function GameLobbyPage() {
         }
       );
       const data = await res.json();
-      setRooms(data);
+      console.log(data.rooms)
+      setRooms(data.rooms);
     } catch (err) {
       console.error(err);
     }

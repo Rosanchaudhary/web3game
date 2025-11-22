@@ -3,24 +3,16 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
-const PlayerStateSchema = new Schema(
-  {
-    name: { type: String },
-    center: { type: String, default: null },
-    throw: { type: Boolean, default: false },
-    hand: { type: [String], default: [] },
-    isTurn: { type: Boolean, default: false },
-  },
-  { _id: false }
-);
-
-const PlayerSchema = new Schema(
+const PlayersItemSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
+    center: { type: String, default: null },
+    throw: { type: Boolean, default: false },
+    hand: { type: [String], default: [] },
     socketId: String,
     joinedAt: { type: Date, default: Date.now },
     lastActive: { type: Date, default: Date.now },
@@ -30,35 +22,22 @@ const PlayerSchema = new Schema(
 
 const CardGameRoomSchema = new Schema(
   {
-    roomId: {
-      type: String,
-      unique: true,
-      required: true,
-    },
-
-    players: [PlayerSchema],
-
+    roomId: { type: String, unique: true, required: true },
     status: {
       type: String,
       enum: ["waiting", "ready", "in-progress", "finished"],
       default: "waiting",
     },
 
-    deck: {
-      type: [String],
+    deck: { type: [String], default: [] },
+
+    players: {
+      type: [PlayersItemSchema],
       default: [],
     },
+    turn: { type: String },
 
-    playerState: {
-      type: Map,
-      of: PlayerStateSchema,
-      default: {},
-    },
-
-    stateLocked: {
-      type: Boolean,
-      default: false,
-    },
+    stateLocked: { type: Boolean, default: false },
 
     expiresAt: {
       type: Date,
@@ -72,3 +51,4 @@ CardGameRoomSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.models.CardGameRoom ||
   mongoose.model("CardGameRoom", CardGameRoomSchema);
+
