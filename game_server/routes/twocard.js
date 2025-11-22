@@ -36,7 +36,6 @@ router.post("/create", auth, async (req, res) => {
       turn: userId,
       status: "waiting",
     });
-    console.log(room);
     // populate user name
     const populated = await room.populate("players.user", "name");
 
@@ -46,7 +45,7 @@ router.post("/create", auth, async (req, res) => {
       roomId: populated.roomId,
     });
   } catch (err) {
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: err });
   }
 });
 

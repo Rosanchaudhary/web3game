@@ -83,6 +83,7 @@ export default function TwoPlayerOverlappedPlay() {
     socket.emit("join-room", { roomId, userId });
 
     socket.on("player-update", (data) => {
+      console.log(data)
       setTurn(data.turn)
       Object.entries(
         data.playerState as Record<string, Partial<PlayerState>>

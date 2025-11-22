@@ -97,7 +97,6 @@ export default function ChatPage() {
 
     socket.on("new-message", (msg: Message) => {
       if (msg.roomId === roomId) {
-        console.log("Comming from socket");
         setMessages((prev) => [...prev, msg]);
       }
     });

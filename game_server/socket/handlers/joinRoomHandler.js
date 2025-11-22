@@ -1,22 +1,8 @@
 import CardGameRoom from "../../models/CardGameRoom.js";
+import { parsePlayers } from "../../utils/twocard/parsePlayers.js";
 import { startGame } from "../../utils/twocard/startGame.js";
 
-export function parsePlayers(data) {
-  const result = {};
 
-  data.forEach((player) => {
-    result[player.user._id.toString()] = {
-      userId: player.user._id.toString(),
-      name: player.user.name,
-      center: player.center,
-      throw: player.throw,
-      hand: player.hand,
-      count: player.hand.length,
-    };
-  });
-
-  return result;
-}
 
 export default function joinRoomHandler(io, socket) {
   socket.on("join-room", async ({ roomId, userId }) => {
@@ -37,6 +23,14 @@ export default function joinRoomHandler(io, socket) {
 
     if (!room) return;
 
+    if (room.status === "waiting") {
+      // Broadcast to all players once
+      io.to(room.roomId).emit("player-update", {
+        playerState: parsePlayers(room.players),
+        turn: room.turn,
+      });
+    }
+
     const allConnected =
       room.players.length === 2 && room.players.every((p) => p.socketId);
 
@@ -55,9 +49,7 @@ export default function joinRoomHandler(io, socket) {
 
       // Send each player their own hand privately
       room.players.forEach((player) => {
-        const socketId = player.socketId;
-        const hand = player.hand || [];
-        io.to(socketId).emit("your-hand", hand);
+        io.to(player.socketId).emit("your-hand", player.hand);
       });
     }
   });

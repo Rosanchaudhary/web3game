@@ -1,5 +1,5 @@
 import CardGameRoom from "../../models/CardGameRoom.js";
-import { parsePlayers } from "../../socket/handlers/joinRoomHandler.js";
+import { parsePlayers } from "./parsePlayers.js";
 
 //utils/twocard/startGame.js
 export async function startGame(io, room) {
@@ -63,8 +63,6 @@ export async function startGame(io, room) {
 
   // Send each player their own hand privately
   newRoom.players.forEach((player) => {
-    const socketId = player.socketId;
-    const hand = player.hand || [];
-    io.to(socketId).emit("your-hand", hand);
+    io.to(player.socketId).emit("your-hand", player.hand);
   });
 }

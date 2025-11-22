@@ -23,7 +23,6 @@ export default function Leaderboard() {
         const res = await fetch("/api/scores");
         const data = await res.json();
         setScores(data);
-        console.log(data);
       } catch (error) {
         console.error("Error fetching scores:", error);
       }
