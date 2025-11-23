@@ -3,7 +3,8 @@ import express from "express";
 import auth from "../middleware/auth.js";
 import CardGameRoom from "../models/CardGameRoom.js";
 import mongoose from "mongoose";
-import { parsePlayers } from "../socket/handlers/joinRoomHandler.js";
+import { parsePlayers } from "../utils/twocard/parsePlayers.js";
+import { startGame } from "../utils/twocard/startGame.js";
 
 const router = express.Router();
 
@@ -60,6 +61,64 @@ router.get("/active", async (req, res) => {
     return res.status(200).json({
       success: true,
       rooms,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ------------------ SET PLAYER READY ------------------
+router.post("/ready", auth, async (req, res) => {
+  try {
+    const io = req.app.get("io");
+    const userId = req.user.id;
+    const { roomId } = req.body;
+
+    if (!roomId) {
+      return res.status(400).json({ error: "roomId is required" });
+    }
+
+    // Check room existence
+    let room = await CardGameRoom.findOne({ roomId });
+    if (!room) {
+      return res.status(404).json({ error: "Room not found" });
+    }
+
+    // Check player exists in room
+    const player = room.players.find((p) => p.user.toString() === userId);
+    if (!player) {
+      return res.status(403).json({ error: "You are not in this room" });
+    }
+
+    // Check if player already ready
+    if (player.ready === true) {
+      return res.status(400).json({ error: "Player already marked as ready" });
+    }
+
+    // Update player ready state
+    room = await CardGameRoom.findOneAndUpdate(
+      { roomId, "players.user": userId },
+      { $set: { "players.$.ready": true } },
+      { new: true }
+    ).populate("players.user", "name");
+
+    // Check if all players are ready
+    const allReady =
+      room.players.length >= 2 && room.players.every((p) => p.ready === true);
+
+    if (allReady) {
+      await startGame(io, room);
+    } else {
+      io.to(room.roomId).emit("player-update", {
+        playerState: parsePlayers(room.players),
+        turn: room.turn,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      allReady,
     });
   } catch (err) {
     console.error(err);

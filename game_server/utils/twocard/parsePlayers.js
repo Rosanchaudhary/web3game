@@ -9,6 +9,7 @@ export function parsePlayers(data) {
       throw: player.throw,
       hand: player.hand,
       count: player.hand.length,
+      ready:player.ready
     };
   });
 

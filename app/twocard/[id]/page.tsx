@@ -13,7 +13,7 @@ type PlayerState = {
   center: Card | null;
   throw: boolean;
   name: string;
-  isTurn: boolean;
+  ready: boolean;
 };
 
 export default function TwoPlayerOverlappedPlay() {
@@ -35,7 +35,7 @@ export default function TwoPlayerOverlappedPlay() {
         center: prev[userId]?.center ?? null,
         throw: prev[userId]?.throw ?? false,
         name: prev[userId]?.name ?? "",
-        isTurn: prev[userId]?.isTurn ?? false,
+        ready: prev[userId]?.ready ?? false,
         ...data,
       },
     }));
@@ -74,6 +74,22 @@ export default function TwoPlayerOverlappedPlay() {
     });
   };
 
+  // ------------- PLAY A CARD -------------
+  const readyButton = async () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) return;
+
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/twocard/ready`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ roomId }),
+    });
+  };
+
   useEffect(() => {
     const socket: Socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
       transports: ["websocket"],
@@ -83,8 +99,8 @@ export default function TwoPlayerOverlappedPlay() {
     socket.emit("join-room", { roomId, userId });
 
     socket.on("player-update", (data) => {
-      console.log(data)
-      setTurn(data.turn)
+      console.log(data);
+      setTurn(data.turn);
       Object.entries(
         data.playerState as Record<string, Partial<PlayerState>>
       ).forEach(([userId, player]) => {
@@ -110,33 +126,44 @@ export default function TwoPlayerOverlappedPlay() {
           {others.length > 0 ? others[0].name : "Waiting"}
         </h2>
 
-        <div className="flex justify-center w-full">
-          <div className="flex justify-center items-start gap-0">
-            {Array.from({
-              length: others.length > 0 ? others[0].count : 0,
-            }).map((_, idx) => (
-              <div
-                key={idx}
-                className="
-            -mr-2 sm:-mr-16
-            last:mr-0
-          "
-              >
-                <Image
-                  alt="back"
-                  width={120}
-                  height={180}
-                  src="/cards/back.png"
-                  className="w-18 sm:w-24 h-14 sm:h-26  opacity-90 drop-shadow-xl"
-                />
-              </div>
-            ))}
+        {/* CONDITION: Opponent not ready */}
+        {others.length > 0 && others[0].ready === false ? (
+          <div className="px-4 py-2 bg-gray-600 text-white rounded-lg shadow-md opacity-70">
+            Not ready
           </div>
-        </div>
+        ) : (
+          <>
+            {/* OPPONENT CARDS */}
+            <div className="flex justify-center w-full">
+              <div className="flex justify-center items-start gap-0">
+                {Array.from({
+                  length: others.length > 0 ? others[0].count : 0,
+                }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="
+                -mr-2 sm:-mr-16
+                last:mr-0
+              "
+                  >
+                    <Image
+                      alt="back"
+                      width={120}
+                      height={180}
+                      src="/cards/back.png"
+                      className="w-18 sm:w-24 h-14 sm:h-26 opacity-90 drop-shadow-xl"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
 
-        <div className="text-xs sm:text-sm opacity-50">
-          {others.length > 0 ? others[0].count : 0} cards
-        </div>
+            {/* CARD COUNT */}
+            <div className="text-xs sm:text-sm opacity-50">
+              {others.length > 0 ? others[0].count : 0} cards
+            </div>
+          </>
+        )}
       </div>
 
       {/* ---------- CENTER TABLE ---------- */}
@@ -186,38 +213,50 @@ export default function TwoPlayerOverlappedPlay() {
           {me && me.name}
         </h2>
 
-        <div className="flex justify-center w-full">
-          <div className="flex justify-center items-end gap-0">
-            {me &&
-              playerADeck.map((card, idx) => (
-                <div
-                  key={idx}
-                  className="
-            -ml-2 sm:-ml-12 
-            first:ml-0
-            transition-transform duration-150
-            hover:-translate-y-3 sm:hover:-translate-y-4
-            hover:scale-105
-          "
-                >
-                  <Image
-                    alt=""
-                    width={120}
-                    height={180}
-                    src={getCardImage(card)}
-                    className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
-                    onClick={() =>
-                      playCard(card, roomId, userId, idx)
-                    }
-                  />
-                </div>
-              ))}
-          </div>
-        </div>
+        {/* READY BUTTON CONDITION */}
+        {me && me.ready === false ? (
+          <button
+            onClick={() => readyButton()}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
+          >
+            Ready
+          </button>
+        ) : (
+          <>
+            {/* CARDS */}
+            <div className="flex justify-center w-full">
+              <div className="flex justify-center items-end gap-0">
+                {me &&
+                  playerADeck.map((card, idx) => (
+                    <div
+                      key={idx}
+                      className="
+                  -ml-2 sm:-ml-12 
+                  first:ml-0
+                  transition-transform duration-150
+                  hover:-translate-y-3 sm:hover:-translate-y-4
+                  hover:scale-105
+                "
+                    >
+                      <Image
+                        alt=""
+                        width={120}
+                        height={180}
+                        src={getCardImage(card)}
+                        className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
+                        onClick={() => playCard(card, roomId, userId, idx)}
+                      />
+                    </div>
+                  ))}
+              </div>
+            </div>
 
-        <div className="text-xs sm:text-sm opacity-50">
-          {me ? me.count : 0} cards
-        </div>
+            {/* MOVE CARD COUNT HERE */}
+            <div className="text-xs sm:text-sm opacity-50">
+              {me ? me.count : 0} cards
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

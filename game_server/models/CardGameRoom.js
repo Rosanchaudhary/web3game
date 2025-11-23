@@ -13,6 +13,7 @@ const PlayersItemSchema = new Schema(
     center: { type: String, default: null },
     throw: { type: Boolean, default: false },
     hand: { type: [String], default: [] },
+    ready: { type: Boolean, default: false },
     socketId: String,
     joinedAt: { type: Date, default: Date.now },
     lastActive: { type: Date, default: Date.now },
@@ -51,4 +52,3 @@ CardGameRoomSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.models.CardGameRoom ||
   mongoose.model("CardGameRoom", CardGameRoomSchema);
-
