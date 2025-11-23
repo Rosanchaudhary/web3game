@@ -119,144 +119,146 @@ export default function TwoPlayerOverlappedPlay() {
   }, [roomId, userId]);
 
   return (
-    <div className="h-screen w-screen bg-[#0e0f12] text-white overflow-hidden flex flex-row sm:flex-col items-center justify-between py-6 sm:py-10 select-none">
-      {/* ---------- PLAYER B (Top) ---------- */}
-      <div className="flex flex-col items-center gap-2 sm:gap-3 -rotate-90 sm:rotate-0">
-        <h2 className="text-base sm:text-lg tracking-wide opacity-80">
-          {others.length > 0 ? others[0].name : "Waiting"}
-        </h2>
+    <div
+      className="h-screen w-screen 
+flex flex-row-reverse sm:flex-col justify-between items-center overflow-hidden"
+    >
+      <div className="flex flex-col items-center justify-center h-full w-[150px] sm:h-[200px] sm:w-full">
+        <div className=" w-[500%] h-[100px] sm:h-full sm:w-full flex flex-col items-center justify-center rotate-90 sm:rotate-0">
+          <h2 className="text-base sm:text-lg tracking-wide opacity-80">
+            {others.length > 0 ? others[0].name : "Waiting"}
+          </h2>
 
-        {/* CONDITION: Opponent not ready */}
-        {others.length > 0 && others[0].ready === false ? (
-          <div className="px-4 py-2 bg-gray-600 text-white rounded-lg shadow-md opacity-70">
-            Not ready
-          </div>
-        ) : (
-          <>
-            {/* OPPONENT CARDS */}
-            <div className="flex justify-center w-full">
-              <div className="flex justify-center items-start gap-0">
-                {Array.from({
-                  length: others.length > 0 ? others[0].count : 0,
-                }).map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="
-                -mr-2 sm:-mr-16
-                last:mr-0
-              "
-                  >
-                    <Image
-                      alt="back"
-                      width={120}
-                      height={180}
-                      src="/cards/back.png"
-                      className="w-18 sm:w-24 h-14 sm:h-26 opacity-90 drop-shadow-xl"
-                    />
-                  </div>
-                ))}
-              </div>
+          {/* CONDITION: Opponent not ready */}
+          {others.length > 0 && others[0].ready === false ? (
+            <div className="px-4 py-2 bg-gray-600 text-white rounded-lg shadow-md opacity-70">
+              Not ready
             </div>
-
-            {/* CARD COUNT */}
-            <div className="text-xs sm:text-sm opacity-50">
-              {others.length > 0 ? others[0].count : 0} cards
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* ---------- CENTER TABLE ---------- */}
-      <div className="relative h-40 sm:h-60 w-full flex items-center justify-center -rotate-90 sm:rotate-0">
-        <AnimatePresence>
-          {others.length > 0 && others[0].center && (
-            <motion.img
-              key="A-thrown"
-              src={getCardImage(others[0].center)}
-              className="absolute w-12 sm:w-24"
-              initial={{ y: 150, x: -50, rotate: -10, opacity: 0 }}
-              animate={{
-                y: others[0].throw ? 0 : 150,
-                x: others[0].throw ? -20 : -50,
-                rotate: others[0].throw ? 12 : -10,
-                opacity: 1,
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ type: "spring", stiffness: 220, damping: 18 }}
-            />
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {me && me.center && (
-            <motion.img
-              key="B-thrown"
-              src={getCardImage(me.center)}
-              className="absolute w-12 sm:w-24"
-              initial={{ y: -150, x: 50, rotate: 10, opacity: 0 }}
-              animate={{
-                y: me.throw ? 0 : -150,
-                x: me.throw ? 20 : 50,
-                rotate: me.throw ? -10 : 10,
-                opacity: 1,
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ type: "spring", stiffness: 220, damping: 18 }}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* ---------- PLAYER A (Bottom) ---------- */}
-      <div className="flex flex-col items-center gap-2 sm:gap-3 pb-4 rotate-270 sm:rotate-0">
-        <h2 className="text-base sm:text-lg tracking-wide opacity-80">
-          {me && me.name}
-        </h2>
-
-        {/* READY BUTTON CONDITION */}
-        {me && me.ready === false ? (
-          <button
-            onClick={() => readyButton()}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
-          >
-            Ready
-          </button>
-        ) : (
-          <>
-            {/* CARDS */}
-            <div className="flex justify-center w-full">
-              <div className="flex justify-center items-end gap-0">
-                {me &&
-                  playerADeck.map((card, idx) => (
+          ) : (
+            <>
+              {/* OPPONENT CARDS */}
+              <div className="flex justify-center w-full">
+                <div className="flex justify-center items-start gap-0">
+                  {Array.from({
+                    length: others.length > 0 ? others[0].count : 0,
+                  }).map((_, idx) => (
                     <div
                       key={idx}
                       className="
+                -mr-2 sm:-mr-16
+                last:mr-0
+              "
+                    >
+                      <Image
+                        alt="back"
+                        width={120}
+                        height={180}
+                        src="/cards/back.png"
+                        className="w-18 sm:w-24 h-14 sm:h-26 opacity-90 drop-shadow-xl"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className=" h-full w-full sm:w-full flex items-center justify-center ">
+        <div className=" relative w-full h-[25%] sm:h-full sm:w-full rotate-90 sm:rotate-0 flex items-center justify-center">
+          <AnimatePresence>
+            {others.length > 0 && others[0].center && (
+              <motion.img
+                key="A-thrown"
+                src={getCardImage(others[0].center)}
+                className="absolute w-12 sm:w-24"
+                // initial={{ y: 150, x: -50, rotate: -10, opacity: 0 }}
+                initial={{ y: -150, x: 50, rotate: 10, opacity: 0 }}
+                animate={{
+                  y: others[0].throw ? 0 : -150,
+                  x: others[0].throw ? 20 : 50,
+                  rotate: others[0].throw ? 12 : 10,
+                  opacity: 1,
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", stiffness: 220, damping: 18 }}
+              />
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {me && me.center && (
+              <motion.img
+                key="B-thrown"
+                src={getCardImage(me.center)}
+                className="absolute w-12 sm:w-24"
+                initial={{ y: 150, x: -50, rotate: -10, opacity: 0 }}
+                // initial={{ y: -150, x: 50, rotate: 10, opacity: 0 }}
+                animate={{
+                  y: me.throw ? 0 : 150,
+                  x: me.throw ? -20 : -50,
+                  rotate: me.throw ? 12 : -10,
+                  opacity: 1,
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", stiffness: 220, damping: 18 }}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center justify-center h-full w-[150px] sm:h-[200px] sm:w-full">
+        <div className=" w-[500%] h-[100px] sm:h-full sm:w-full flex flex-col items-center justify-center rotate-90 sm:rotate-0">
+          <h2 className="text-base sm:text-lg tracking-wide opacity-80">
+            {me && me.name}
+          </h2>
+
+          {/* READY BUTTON CONDITION */}
+          {me && me.ready === false ? (
+            <button
+              onClick={() => readyButton()}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg shadow-md hover:bg-green-700 transition"
+            >
+              Ready
+            </button>
+          ) : (
+            <>
+              {/* CARDS */}
+              <div className="flex justify-center w-full">
+                <div className="flex justify-center items-end gap-0">
+                  {me &&
+                    playerADeck.map((card, idx) => (
+                      <div
+                        key={idx}
+                        className="
                   -ml-2 sm:-ml-12 
                   first:ml-0
                   transition-transform duration-150
                   hover:-translate-y-3 sm:hover:-translate-y-4
                   hover:scale-105
                 "
-                    >
-                      <Image
-                        alt=""
-                        width={120}
-                        height={180}
-                        src={getCardImage(card)}
-                        className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
-                        onClick={() => playCard(card, roomId, userId, idx)}
-                      />
-                    </div>
-                  ))}
+                      >
+                        <Image
+                          alt=""
+                          width={120}
+                          height={180}
+                          src={getCardImage(card)}
+                          className="w-18 sm:w-20 h-14 sm:h-26 drop-shadow-xl cursor-pointer"
+                          onClick={() => playCard(card, roomId, userId, idx)}
+                        />
+                      </div>
+                    ))}
+                </div>
               </div>
-            </div>
 
-            {/* MOVE CARD COUNT HERE */}
-            <div className="text-xs sm:text-sm opacity-50">
-              {me ? me.count : 0} cards
-            </div>
-          </>
-        )}
+
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

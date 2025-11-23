@@ -1,7 +1,7 @@
 //compnent/Navbar.tsx
 "use client";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -33,14 +33,7 @@ export default function Navbar() {
 
         {/* Right Side: Connect Wallet */}
         <div className="flex items-center gap-4">
-          <ConnectButton
-            chainStatus="icon"
-            showBalance={false}
-            accountStatus={{
-              smallScreen: "avatar",
-              largeScreen: "full",
-            }}
-          />
+
         </div>
       </div>
 
