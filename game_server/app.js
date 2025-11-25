@@ -26,7 +26,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://192.168.2.4:3000",
   "http://192.168.1.79:3000",
-  "https://your-production-site.com"
+  "https://0c1495d76ea6.ngrok-free.app"
 ];
 app.use(
   cors({

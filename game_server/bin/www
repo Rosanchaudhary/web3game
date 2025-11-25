@@ -5,6 +5,7 @@ import debugLib from "debug";
 import http from "http";
 import { Server } from "socket.io";
 import initializeSocket from "../socket/index.js";
+import initializeSocketTwo from "../webrtc/index.js";
 
 const debug = debugLib("game-server:server");
 
@@ -26,7 +27,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://192.168.2.4:3000",
   "http://192.168.1.79:3000",
-  "https://your-production-site.com",
+  "https://0c1495d76ea6.ngrok-free.app",
 ];
 
 const io = new Server(server, {
@@ -43,7 +44,8 @@ const io = new Server(server, {
 // Attach the socket instance to app so routes can access it
 app.set("io", io);
 
-initializeSocket(io);
+// initializeSocket(io);
+initializeSocketTwo(io)
 
 /**
  * Listen on provided port.

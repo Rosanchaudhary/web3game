@@ -119,10 +119,7 @@ export default function TwoPlayerOverlappedPlay() {
   }, [roomId, userId]);
 
   return (
-    <div
-      className="h-screen w-screen 
-flex flex-row-reverse sm:flex-col justify-between items-center overflow-hidden"
-    >
+    <div className="h-screen w-screen flex flex-row-reverse sm:flex-col justify-between items-center overflow-hidden">
       <div className="flex flex-col items-center justify-center h-full w-[150px] sm:h-[200px] sm:w-full">
         <div className=" w-[500%] h-[100px] sm:h-full sm:w-full flex flex-col items-center justify-center rotate-90 sm:rotate-0">
           <h2 className="text-base sm:text-lg tracking-wide opacity-80">
@@ -144,10 +141,7 @@ flex flex-row-reverse sm:flex-col justify-between items-center overflow-hidden"
                   }).map((_, idx) => (
                     <div
                       key={idx}
-                      className="
-                -mr-2 sm:-mr-16
-                last:mr-0
-              "
+                      className="-mr-2 sm:-mr-16 last:mr-0"
                     >
                       <Image
                         alt="back"
@@ -160,8 +154,6 @@ flex flex-row-reverse sm:flex-col justify-between items-center overflow-hidden"
                   ))}
                 </div>
               </div>
-
-
             </>
           )}
         </div>
@@ -234,13 +226,7 @@ flex flex-row-reverse sm:flex-col justify-between items-center overflow-hidden"
                     playerADeck.map((card, idx) => (
                       <div
                         key={idx}
-                        className="
-                  -ml-2 sm:-ml-12 
-                  first:ml-0
-                  transition-transform duration-150
-                  hover:-translate-y-3 sm:hover:-translate-y-4
-                  hover:scale-105
-                "
+                        className="-ml-2 sm:-ml-12 first:ml-0 transition-transform duration-150 hover:-translate-y-3 sm:hover:-translate-y-4 hover:scale-105"
                       >
                         <Image
                           alt=""
@@ -254,8 +240,6 @@ flex flex-row-reverse sm:flex-col justify-between items-center overflow-hidden"
                     ))}
                 </div>
               </div>
-
-
             </>
           )}
         </div>
