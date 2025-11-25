@@ -7,6 +7,9 @@ import cookieParser from "cookie-parser";
 import logger from "morgan";
 import mongoose from "mongoose";
 import cors from "cors";
+import dotenv from "dotenv";
+dotenv.config();
+
 
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
@@ -21,13 +24,10 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
-// ✅ Fix CORS issue
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://192.168.2.4:3000",
-  "http://192.168.1.79:3000",
-  "https://0c1495d76ea6.ngrok-free.app"
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
+console.log(allowedOrigins)
+
+
 app.use(
   cors({
     origin: function (origin, callback) {

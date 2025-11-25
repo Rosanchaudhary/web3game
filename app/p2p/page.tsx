@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 
 export default function WebRTCVideoCall() {
   const [users, setUsers] = useState<string[]>([]);
   const [incomingCaller, setIncomingCaller] = useState<string | null>(null);
   const [inCall, setInCall] = useState(false);
 
-  const socketRef = useRef<any>(null);
+const socketRef = useRef<Socket | null>(null);
   const pc = useRef<RTCPeerConnection | null>(null);
 
   const localStream = useRef<MediaStream | null>(null);
@@ -64,9 +64,9 @@ export default function WebRTCVideoCall() {
     // ICE sending
     pc.current.onicecandidate = (e) => {
       if (e.candidate && activePeerId.current) {
-        socketRef.current.emit("webrtc-ice", {
+        socketRef.current!.emit("webrtc-ice", {
           targetId: activePeerId.current,
-          from: socketRef.current.id,
+          from: socketRef.current!.id,
           candidate: e.candidate,
         });
       }
@@ -84,7 +84,7 @@ export default function WebRTCVideoCall() {
 
     // Notify remote peer unless they notified us
     if (!fromRemote && activePeerId.current) {
-      socketRef.current.emit("end-call", {
+      socketRef.current!.emit("end-call", {
         targetId: activePeerId.current,
       });
     }
@@ -131,9 +131,9 @@ export default function WebRTCVideoCall() {
     const offer = await pc.current!.createOffer();
     await pc.current!.setLocalDescription(offer);
 
-    socketRef.current.emit("call-user", {
+    socketRef.current!.emit("call-user", {
       targetId,
-      from: socketRef.current.id,
+      from: socketRef.current!.id,
       offer,
     });
   };
@@ -146,7 +146,7 @@ export default function WebRTCVideoCall() {
     socketRef.current = socket;
 
     // Join room
-    socket.emit("join-room", { roomId });
+    socket.emit("join-room-webrtc", { roomId });
 
     // Room user list
     socket.on("room-user-list", (list) => {

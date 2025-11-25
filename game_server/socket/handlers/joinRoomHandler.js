@@ -1,8 +1,8 @@
-// handlers/joinRoomHandler.js
+// socket/handlers/joinRoomHandler.js
 import CardGameRoom from "../../models/CardGameRoom.js";
 import { parsePlayers } from "../../utils/twocard/parsePlayers.js";
 
-export default function joinRoomHandler(io, socket) {
+export default function joinRoomHandler(io, socket) { 
   socket.on("join-room", async ({ roomId, userId }) => {
     socket.join(roomId);
     console.log(`User ${userId} joined room ${roomId}`);
