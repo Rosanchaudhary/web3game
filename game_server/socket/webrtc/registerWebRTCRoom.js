@@ -3,13 +3,13 @@ import { roomUsers } from "./roomUsersStore.js";
 export default function registerWebRTCRoom(io, socket) {
   socket.on("join-room-webrtc", ({ roomId }) => {
     socket.join(roomId);
-    console.log("Setting rooms user")
 
     if (!roomUsers[roomId]) roomUsers[roomId] = [];
     roomUsers[roomId].push(socket.id);
-    console.log(roomUsers[roomId]);
     io.to(roomId).emit("room-user-list", roomUsers[roomId]);
   });
+
+
 
   socket.on("disconnect", () => {
     for (const roomId in roomUsers) {

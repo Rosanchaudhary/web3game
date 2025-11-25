@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 // Next.js + TypeScript single-file page component that renders a canvas
 // with a movable square and arrow buttons. Place this file in your
@@ -15,6 +16,8 @@ const SQUARE_SIZE = 60;
 const MOVE_STEP = 20;
 
 export default function CanvasPage() {
+  const roomId = "game-room-1";
+  const socketRef = useRef<Socket | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [pos, setPos] = useState<Position>({
     x: (CANVAS_WIDTH - SQUARE_SIZE) / 2,
@@ -52,17 +55,12 @@ export default function CanvasPage() {
 
   // move with bounds
   const move = (dx: number, dy: number) => {
-    setPos((prev) => {
-      const nextX = Math.min(
-        Math.max(prev.x + dx, 0),
-        CANVAS_WIDTH - SQUARE_SIZE
-      );
-      const nextY = Math.min(
-        Math.max(prev.y + dy, 0),
-        CANVAS_HEIGHT - SQUARE_SIZE
-      );
-      return { x: nextX, y: nextY };
-    });
+    const nextX = Math.min(Math.max(pos.x + dx, 0), CANVAS_WIDTH - SQUARE_SIZE);
+    const nextY = Math.min(
+      Math.max(pos.y + dy, 0),
+      CANVAS_HEIGHT - SQUARE_SIZE
+    );
+    socketRef.current?.emit("position", { roomId, x: nextX, y: nextY });
   };
 
   // keyboard controls: arrow keys + WASD
@@ -106,7 +104,22 @@ export default function CanvasPage() {
   const onLeft = () => move(-MOVE_STEP, 0);
   const onRight = () => move(MOVE_STEP, 0);
   const reset = () =>
-    setPos({ x: (CANVAS_WIDTH - SQUARE_SIZE) / 2, y: (CANVAS_HEIGHT - SQUARE_SIZE) / 2 });
+    setPos({
+      x: (CANVAS_WIDTH - SQUARE_SIZE) / 2,
+      y: (CANVAS_HEIGHT - SQUARE_SIZE) / 2,
+    });
+
+  useEffect(() => {
+    const socket = io("http://192.168.2.4:3001");
+    socketRef.current = socket;
+
+    // Join room
+    socket.emit("join-game-room", { roomId });
+    socket.on("new-position", (data) => {
+      console.log(data);
+      setPos({ x: data.x, y: data.y });
+    });
+  }, []);
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">

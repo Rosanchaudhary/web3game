@@ -8,7 +8,7 @@ export default function WebRTCVideoCall() {
   const [incomingCaller, setIncomingCaller] = useState<string | null>(null);
   const [inCall, setInCall] = useState(false);
 
-const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const pc = useRef<RTCPeerConnection | null>(null);
 
   const localStream = useRef<MediaStream | null>(null);
@@ -271,12 +271,22 @@ const socketRef = useRef<Socket | null>(null);
       <div className="grid grid-cols-2 gap-4">
         <div>
           <h2 className="font-semibold">You</h2>
-          <video ref={localVideoRef} autoPlay playsInline className="w-full rounded" />
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            className="w-full rounded"
+          />
         </div>
 
         <div>
           <h2 className="font-semibold">Remote</h2>
-          <video ref={remoteVideoRef} autoPlay playsInline className="w-full rounded" />
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            className="w-full rounded"
+          />
         </div>
       </div>
     </div>
