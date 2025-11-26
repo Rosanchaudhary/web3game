@@ -1,3 +1,4 @@
+//page.tsx
 "use client";
 
 import { Canvas } from "@react-three/fiber";
@@ -7,40 +8,7 @@ import {
   RandomizedLight,
 } from "@react-three/drei";
 import Player from "./components/Player";
-
-/* ------------------------------------------------------
-   WORLD VISUALS
------------------------------------------------------- */
-function World() {
-  return (
-    <>
-      <mesh position={[0, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[30, 1, 30]} />
-        <meshStandardMaterial color="#7a7a7a" />
-      </mesh>
-
-      <mesh position={[0, 2.5, -15]} castShadow receiveShadow>
-        <boxGeometry args={[30, 5, 1]} />
-        <meshStandardMaterial color="#8a7a7a" />
-      </mesh>
-
-      <mesh position={[0, 2.5, 15]} castShadow receiveShadow>
-        <boxGeometry args={[30, 5, 1]} />
-        <meshStandardMaterial color="#6a7a7a" />
-      </mesh>
-
-      <mesh position={[-15, 2.5, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1, 5, 30]} />
-        <meshStandardMaterial color="#4a7a7a" />
-      </mesh>
-
-      <mesh position={[15, 2.5, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1, 5, 30]} />
-        <meshStandardMaterial color="#5a7a7a" />
-      </mesh>
-    </>
-  );
-}
+import World from "./components/World";
 
 /* ------------------------------------------------------
    PAGE
@@ -70,9 +38,7 @@ export default function Page() {
             bias={0.001}
           />
         </AccumulativeShadows>
-
         <directionalLight position={[5, 10, 5]} intensity={0.7} castShadow />
-
         <Player />
         <World />
       </Canvas>

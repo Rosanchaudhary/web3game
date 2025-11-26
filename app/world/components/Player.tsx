@@ -1,6 +1,8 @@
+//component/Player.tsx
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useEffect, useRef } from "react";
+import Gun from "./Gun";
 
 /* ------------------------------------------------------
    BLOCK CREATOR (AABB)
@@ -23,19 +25,39 @@ const WORLD_BLOCKS = [
   createBlock(15, 2.5, 0, 1, 5, 30), // right
 ];
 
+/* ------------------------------------------------------
+   TEMP MESH FOR RAYCASTING AGAINST BOXES
+------------------------------------------------------ */
+function boxMeshFromAABB(box: THREE.Box3) {
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(size.x, size.y, size.z),
+    new THREE.MeshBasicMaterial({ visible: false }) // invisible
+  );
+  mesh.position.copy(center);
+  mesh.updateMatrixWorld();
+  return mesh;
+}
+
 export default function Player() {
   const pos = useRef(new THREE.Vector3(0, 1.6, 5));
   const vel = useRef(new THREE.Vector3(0, 0, 0));
-
   const yaw = useRef(0);
   const pitch = useRef(0);
   const keys = useRef<Record<string, boolean>>({});
+  const onGround = useRef(false);
+
+  // SHOOTING
+  const raycaster = useRef(new THREE.Raycaster());
+  const mouseDown = useRef(false);
 
   const speed = 7;
   const jumpStrength = 9;
   const gravity = -25;
-
-  const onGround = useRef(false);
 
   const { camera, gl } = useThree();
 
@@ -86,6 +108,26 @@ export default function Player() {
   }, [gl.domElement]);
 
   /* ----------------------------
+    MOUSE SHOOT INPUT
+  ---------------------------- */
+  useEffect(() => {
+    const down = (e: MouseEvent) => {
+      if (e.button === 0) mouseDown.current = true;
+    };
+    const up = (e: MouseEvent) => {
+      if (e.button === 0) mouseDown.current = false;
+    };
+
+    window.addEventListener("mousedown", down);
+    window.addEventListener("mouseup", up);
+
+    return () => {
+      window.removeEventListener("mousedown", down);
+      window.removeEventListener("mouseup", up);
+    };
+  }, []);
+
+  /* ----------------------------
     COLLISION HELPERS
   ---------------------------- */
   function collideBox(next: THREE.Vector3) {
@@ -98,41 +140,25 @@ export default function Player() {
     );
   }
 
-  /**
-   * Vertical collision check.
-   * - If the player's vertical AABB intersects a world block we treat it as a landing/ceiling hit.
-   * - We set onGround.current = true when landing or standing on a block (vy <= 0).
-   * - Otherwise onGround.current = false.
-   */
   function checkVertical(nextY: THREE.Vector3, vy: number) {
     const boxY = collideBox(nextY);
 
     for (const w of WORLD_BLOCKS) {
       if (!w.intersectsBox(boxY)) continue;
 
-      // If we're intersecting vertically and moving down or stationary, we're on the ground.
-      if (vy <= 0) onGround.current = true;
-
-      // Clamp to previous Y (prevent penetration) and zero vertical velocity.
+      if (vy < 0) onGround.current = true;
       return { y: pos.current.y, vy: 0 };
     }
 
-    // No vertical intersection → airborne.
-    onGround.current = false;
     return { y: nextY.y, vy };
   }
 
-  /**
-   * Horizontal collision check (X/Z).
-   * Tries X and Z separately to allow sliding along walls.
-   */
   function checkHorizontal(next: THREE.Vector3) {
     const box = collideBox(next);
 
     for (const w of WORLD_BLOCKS) {
       if (!w.intersectsBox(box)) continue;
 
-      // sliding (X/Z separately)
       const fixed = pos.current.clone();
 
       const testX = collideBox(
@@ -151,14 +177,14 @@ export default function Player() {
     return next;
   }
 
-  /* ----------------------------
-    UPDATE LOOP (useFrame)
-  ---------------------------- */
+  /* ------------------------------------------------------
+     MAIN LOOP
+  ------------------------------------------------------ */
   useFrame((_, dt) => {
-    // update camera rotation from look
+    /* CAMERA ROTATION */
     camera.rotation.set(pitch.current, yaw.current, 0, "YXZ");
 
-    // ---- movement direction ----
+    /* MOVEMENT VECTORS */
     const forward = new THREE.Vector3(
       Math.sin(yaw.current),
       0,
@@ -170,8 +196,8 @@ export default function Player() {
       Math.sin(yaw.current)
     );
 
-    // Build movement vector from input
     const move = new THREE.Vector3();
+
     if (keys.current["w"]) move.add(forward);
     if (keys.current["s"]) move.sub(forward);
     if (keys.current["a"]) move.sub(right);
@@ -179,27 +205,17 @@ export default function Player() {
 
     if (move.length() > 0) move.normalize().multiplyScalar(speed * dt);
 
-    // -------------------------------------------------
-    // HORIZONTAL STEP (XZ only)
-    // -------------------------------------------------
+    /* HORIZONTAL */
     let nextPos = pos.current.clone().add(move);
     nextPos = checkHorizontal(nextPos);
     pos.current.copy(nextPos);
 
-    // -------------------------------------------------
-    // VERTICAL STEP
-    //  - Apply gravity
-    //  - Jump if requested AND we were on ground (onGround is from previous frame or set by checkVertical)
-    //  - Move vertically and resolve collisions
-    // -------------------------------------------------
+    /* VERTICAL */
     vel.current.y += gravity * dt;
 
-    // Accept either ' ' (space char) or 'space' (some browsers)
-    const wantsJump = Boolean(keys.current[" "] || keys.current["space"]);
-
-    if (wantsJump && onGround.current) {
+    if (keys.current[" "] && onGround.current) {
       vel.current.y = jumpStrength;
-      // do NOT set onGround false here — we'll recompute after movement
+      onGround.current = false;
     }
 
     const nextY = pos.current.clone();
@@ -209,9 +225,35 @@ export default function Player() {
     pos.current.y = vert.y;
     vel.current.y = vert.vy;
 
-    // final camera position
+    /* UPDATE CAMERA */
     camera.position.copy(pos.current);
+
+    /* -------------------------------------------------
+        SHOOTING (Raycast)
+    ------------------------------------------------- */
+    if (mouseDown.current) {
+      const direction = camera.getWorldDirection(new THREE.Vector3());
+
+      raycaster.current.set(camera.position, direction);
+
+      let closestHit: THREE.Vector3 | null = null;
+      let closestDist = Infinity;
+
+      for (const wb of WORLD_BLOCKS) {
+        const mesh = boxMeshFromAABB(wb);
+        const hits = raycaster.current.intersectObject(mesh, false);
+
+        if (hits.length > 0 && hits[0].distance < closestDist) {
+          closestDist = hits[0].distance;
+          closestHit = hits[0].point.clone();
+        }
+      }
+
+      if (closestHit) {
+        console.log("🔫 HIT at:", closestHit);
+      }
+    }
   });
 
-  return null;
+  return <Gun camera={camera} />;
 }
