@@ -9,10 +9,13 @@ import {
 } from "@react-three/drei";
 import Player from "./components/Player";
 import World from "./components/World";
+import Crosshair from "./components/Crosshair";
+import Enemy from "./components/Enemy";
 
 export default function Page() {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
+      <Crosshair />
       <Canvas shadows camera={{ fov: 70, position: [0, 1.6, 5] }}>
         <ambientLight intensity={0.3} />
         <Environment preset="city" />
@@ -35,7 +38,7 @@ export default function Page() {
         </AccumulativeShadows>
         <directionalLight position={[5, 10, 5]} intensity={0.7} castShadow />
         {/* <TestGun /> */}
-
+        <Enemy />
         <Player />
         <World />
       </Canvas>

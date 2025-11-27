@@ -16,37 +16,50 @@ export default function Gun({
 
   const gltf = useGLTF("/3d/lowpoly_rifle.glb");
 
-  // Disable culling + recenter pivot
-  useEffect(() => {
-    gltf.scene.traverse((child: any) => (child.frustumCulled = false));
+  /* ------------------------------------------------------
+     INITIAL SETUP — apply your EXACT previous rotation
+  ------------------------------------------------------ */
+useEffect(() => {
+  gltf.scene.traverse((child: any) => (child.frustumCulled = false));
 
-    const box = new THREE.Box3().setFromObject(gltf.scene);
-    const center = box.getCenter(new THREE.Vector3());
-    gltf.scene.position.sub(center);
-  }, [gltf]);
+  // Recenter pivot
+  const box = new THREE.Box3().setFromObject(gltf.scene);
+  const center = box.getCenter(new THREE.Vector3());
+  gltf.scene.position.sub(center);
 
+  // Apply rotation to the MODEL, not the group
+  gltf.scene.rotation.set(0, 0, 0); // clear just in case
+  gltf.scene.rotateZ(0.1);
+  gltf.scene.rotateY(1.5);
+  gltf.scene.rotateX(1.5);
+
+  console.log("Applied rotation to model:", gltf.scene.rotation);
+}, [gltf]);
+
+
+  /* ------------------------------------------------------
+     MAIN LOOP
+  ------------------------------------------------------ */
   useFrame(() => {
     if (!gun.current) return;
 
-    // gun faces same direction as camera
+    // Aim gun with camera
     gun.current.quaternion.copy(camera.quaternion);
 
-    // FPS gun offset (in camera space)
+    // FPS gun offset
     const offset = new THREE.Vector3(0.3, -0.35, -0.7);
-    gun.current.rotateZ(0.1);
-    gun.current.rotateY(1.5);
-    gun.current.rotateX(1.5);
-    // apply recoil
+
+    // Recoil
     recoil.current *= 0.85;
     if (shootingRef.current) {
       recoil.current = Math.min(recoil.current + 0.05, 0.15);
     }
     offset.z -= recoil.current;
 
-    // convert camera-local offset to world space
-    const worldPos = offset.clone();
-    camera.localToWorld(worldPos);
-    gun.current.position.copy(worldPos);
+    // Convert to world space
+    const world = offset.clone();
+    camera.localToWorld(world);
+    gun.current.position.copy(world);
   });
 
   return (
