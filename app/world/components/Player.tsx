@@ -1,4 +1,3 @@
-//component/Player.tsx
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useEffect, useRef } from "react";
@@ -25,24 +24,6 @@ const WORLD_BLOCKS = [
   createBlock(15, 2.5, 0, 1, 5, 30), // right
 ];
 
-/* ------------------------------------------------------
-   TEMP MESH FOR RAYCASTING AGAINST BOXES
------------------------------------------------------- */
-function boxMeshFromAABB(box: THREE.Box3) {
-  const size = new THREE.Vector3();
-  const center = new THREE.Vector3();
-  box.getSize(size);
-  box.getCenter(center);
-
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(size.x, size.y, size.z),
-    new THREE.MeshBasicMaterial({ visible: false }) // invisible
-  );
-  mesh.position.copy(center);
-  mesh.updateMatrixWorld();
-  return mesh;
-}
-
 export default function Player() {
   const pos = useRef(new THREE.Vector3(0, 1.6, 5));
   const vel = useRef(new THREE.Vector3(0, 0, 0));
@@ -53,13 +34,39 @@ export default function Player() {
 
   // SHOOTING
   const raycaster = useRef(new THREE.Raycaster());
-  const mouseDown = useRef(false);
+  const mouseDown = useRef(false); // track hold state
+  const justClicked = useRef(false); // single-shot trigger
 
   const speed = 7;
   const jumpStrength = 9;
   const gravity = -25;
 
   const { camera, gl } = useThree();
+
+  /* ------------------------------------------------------
+      PREBUILD COLLIDER MESHES (performance fix)
+  ------------------------------------------------------ */
+  const colliderMeshes = useRef<THREE.Mesh[]>([]);
+
+  useEffect(() => {
+    colliderMeshes.current = WORLD_BLOCKS.map((b) => {
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+
+      b.getSize(size);
+      b.getCenter(center);
+
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(size.x, size.y, size.z),
+        new THREE.MeshBasicMaterial({ visible: false }) // invisible
+      );
+
+      mesh.position.copy(center);
+      mesh.updateMatrixWorld();
+
+      return mesh;
+    });
+  }, []);
 
   /* ----------------------------
     INPUT
@@ -80,13 +87,13 @@ export default function Player() {
   }, []);
 
   /* ----------------------------
-    MOUSE LOOK
+    MOUSE LOOK & POINTERLOCK
   ---------------------------- */
   useEffect(() => {
     const canvas = gl.domElement;
 
-    const click = () => canvas.requestPointerLock();
-    document.addEventListener("click", click);
+    const clickRequestLock = () => canvas.requestPointerLock();
+    document.addEventListener("click", clickRequestLock);
 
     const move = (e: MouseEvent) => {
       if (document.pointerLockElement !== canvas) return;
@@ -102,20 +109,29 @@ export default function Player() {
     window.addEventListener("mousemove", move);
 
     return () => {
-      document.removeEventListener("click", click);
+      document.removeEventListener("click", clickRequestLock);
       window.removeEventListener("mousemove", move);
     };
   }, [gl.domElement]);
 
   /* ----------------------------
-    MOUSE SHOOT INPUT
+    MOUSE SHOOT INPUT (ONE-SHOT + HOLD)
+    - justClicked becomes true on initial mousedown (fires once)
+    - mouseDown tracks hold state (kept for future use if needed)
   ---------------------------- */
   useEffect(() => {
     const down = (e: MouseEvent) => {
-      if (e.button === 0) mouseDown.current = true;
+      if (e.button === 0) {
+        if (!mouseDown.current) {
+          justClicked.current = true;
+        }
+        mouseDown.current = true;
+      }
     };
     const up = (e: MouseEvent) => {
-      if (e.button === 0) mouseDown.current = false;
+      if (e.button === 0) {
+        mouseDown.current = false;
+      }
     };
 
     window.addEventListener("mousedown", down);
@@ -127,9 +143,9 @@ export default function Player() {
     };
   }, []);
 
-  /* ----------------------------
-    COLLISION HELPERS
-  ---------------------------- */
+  /* ------------------------------------------------------
+      COLLISION HELPERS
+  ------------------------------------------------------ */
   function collideBox(next: THREE.Vector3) {
     const radius = 0.3;
     const height = 1.7;
@@ -141,12 +157,15 @@ export default function Player() {
   }
 
   function checkVertical(nextY: THREE.Vector3, vy: number) {
+    onGround.current = false; // important - reset before checks
+
     const boxY = collideBox(nextY);
 
     for (const w of WORLD_BLOCKS) {
       if (!w.intersectsBox(boxY)) continue;
 
       if (vy < 0) onGround.current = true;
+
       return { y: pos.current.y, vy: 0 };
     }
 
@@ -154,27 +173,17 @@ export default function Player() {
   }
 
   function checkHorizontal(next: THREE.Vector3) {
-    const box = collideBox(next);
+    const fixed = next.clone();
 
     for (const w of WORLD_BLOCKS) {
-      if (!w.intersectsBox(box)) continue;
+      const testX = collideBox(new THREE.Vector3(next.x, pos.current.y, pos.current.z));
+      if (w.intersectsBox(testX)) fixed.x = pos.current.x;
 
-      const fixed = pos.current.clone();
-
-      const testX = collideBox(
-        new THREE.Vector3(next.x, pos.current.y, pos.current.z)
-      );
-      if (!w.intersectsBox(testX)) fixed.x = next.x;
-
-      const testZ = collideBox(
-        new THREE.Vector3(pos.current.x, pos.current.y, next.z)
-      );
-      if (!w.intersectsBox(testZ)) fixed.z = next.z;
-
-      return fixed;
+      const testZ = collideBox(new THREE.Vector3(pos.current.x, pos.current.y, next.z));
+      if (w.intersectsBox(testZ)) fixed.z = pos.current.z;
     }
 
-    return next;
+    return fixed;
   }
 
   /* ------------------------------------------------------
@@ -229,31 +238,33 @@ export default function Player() {
     camera.position.copy(pos.current);
 
     /* -------------------------------------------------
-        SHOOTING (Raycast)
+        SHOOTING (ONE-SHOT per mousedown)
     ------------------------------------------------- */
-    if (mouseDown.current) {
-      const direction = camera.getWorldDirection(new THREE.Vector3());
+    if (justClicked.current) {
+      justClicked.current = false; // consume single shot
 
+      const direction = camera.getWorldDirection(new THREE.Vector3());
       raycaster.current.set(camera.position, direction);
 
-      let closestHit: THREE.Vector3 | null = null;
+      let closest: THREE.Vector3 | null = null;
       let closestDist = Infinity;
 
-      for (const wb of WORLD_BLOCKS) {
-        const mesh = boxMeshFromAABB(wb);
+      for (const mesh of colliderMeshes.current) {
         const hits = raycaster.current.intersectObject(mesh, false);
 
         if (hits.length > 0 && hits[0].distance < closestDist) {
           closestDist = hits[0].distance;
-          closestHit = hits[0].point.clone();
+          closest = hits[0].point.clone();
         }
       }
 
-      if (closestHit) {
-        console.log("🔫 HIT at:", closestHit);
+      if (closest) {
+        console.log("🔫 HIT at:", closest);
       }
     }
   });
 
-  return <Gun camera={camera} />;
+  return <Gun shootingRef={mouseDown} />;
+
+
 }

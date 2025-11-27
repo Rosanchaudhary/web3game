@@ -10,17 +10,12 @@ import {
 import Player from "./components/Player";
 import World from "./components/World";
 
-/* ------------------------------------------------------
-   PAGE
------------------------------------------------------- */
 export default function Page() {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <Canvas shadows camera={{ fov: 70, position: [0, 1.6, 5] }}>
         <ambientLight intensity={0.3} />
-
         <Environment preset="city" />
-
         <AccumulativeShadows
           temporal
           frames={80}
@@ -39,6 +34,8 @@ export default function Page() {
           />
         </AccumulativeShadows>
         <directionalLight position={[5, 10, 5]} intensity={0.7} castShadow />
+        {/* <TestGun /> */}
+
         <Player />
         <World />
       </Canvas>
