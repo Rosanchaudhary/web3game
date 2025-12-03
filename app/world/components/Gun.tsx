@@ -20,23 +20,24 @@ export default function Gun({
   /* ------------------------------------------------------
      INITIAL SETUP — apply your EXACT previous rotation
   ------------------------------------------------------ */
-useEffect(() => {
-  gltf.scene.traverse((child: any) => (child.frustumCulled = false));
+  useEffect(() => {
+    gltf.scene.traverse((child: THREE.Object3D) => {
+      child.frustumCulled = false;
+    });
 
-  // Recenter pivot
-  const box = new THREE.Box3().setFromObject(gltf.scene);
-  const center = box.getCenter(new THREE.Vector3());
-  gltf.scene.position.sub(center);
+    // Recenter pivot
+    const box = new THREE.Box3().setFromObject(gltf.scene);
+    const center = box.getCenter(new THREE.Vector3());
+    gltf.scene.position.sub(center);
 
-  // Apply rotation to the MODEL, not the group
-  gltf.scene.rotation.set(0, 0, 0); // clear just in case
-  gltf.scene.rotateZ(0.1);
-  gltf.scene.rotateY(1.5);
-  gltf.scene.rotateX(1.5);
+    // Apply rotation to the MODEL, not the group
+    gltf.scene.rotation.set(0, 0, 0); // clear just in case
+    gltf.scene.rotateZ(0.1);
+    gltf.scene.rotateY(1.5);
+    gltf.scene.rotateX(1.5);
 
-  console.log("Applied rotation to model:", gltf.scene.rotation);
-}, [gltf]);
-
+    console.log("Applied rotation to model:", gltf.scene.rotation);
+  }, [gltf]);
 
   /* ------------------------------------------------------
      MAIN LOOP
