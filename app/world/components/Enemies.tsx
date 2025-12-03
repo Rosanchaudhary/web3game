@@ -1,3 +1,4 @@
+//component/Enemies.txt
 import Enemy from "./Enemy";
 
 export default function Enemies({ count = 5 }) {

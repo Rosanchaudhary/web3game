@@ -200,16 +200,15 @@ export default function Player() {
     camera.rotation.set(pitch.current, yaw.current, 0, "YXZ");
 
     /* MOVEMENT VECTORS */
-    const forward = new THREE.Vector3(
-      Math.sin(yaw.current),
-      0,
-      -Math.cos(yaw.current)
-    );
-    const right = new THREE.Vector3(
-      Math.cos(yaw.current),
-      0,
-      Math.sin(yaw.current)
-    );
+    // TRUE forward from camera
+    const forward = new THREE.Vector3();
+    camera.getWorldDirection(forward);
+    forward.y = 0; // flatten (FPS walking)
+    forward.normalize();
+
+    // TRUE right vector from camera
+    const right = new THREE.Vector3();
+    right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
     const move = new THREE.Vector3();
 
