@@ -10,7 +10,7 @@ import {
 import Player from "./components/Player";
 import World from "./components/World";
 import Crosshair from "./components/Crosshair";
-import Enemy from "./components/Enemy";
+import Enemies from "./components/Enemies";
 
 export default function Page() {
   return (
@@ -38,7 +38,7 @@ export default function Page() {
         </AccumulativeShadows>
         <directionalLight position={[5, 10, 5]} intensity={0.7} castShadow />
         {/* <TestGun /> */}
-        <Enemy />
+        <Enemies />
         <Player />
         <World />
       </Canvas>

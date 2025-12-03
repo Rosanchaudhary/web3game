@@ -1,3 +1,4 @@
+//components/Gun.tsx
 "use client";
 
 import { useThree, useFrame } from "@react-three/fiber";

@@ -1,23 +1,43 @@
-// Enemy.tsx
-import { useRef, useState } from "react";
+// components/Enemy.tsx
+import { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { registerEnemy, unregisterEnemy } from "../stores/enemyStore";
+
 
 export default function Enemy({ position = [0, 0.5, -5] }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<THREE.Mesh>(null!);
   const [color, setColor] = useState("red");
+  const enemyRef = useRef<any>(null); // holds the enemy controller instance
 
-  // Called from gun when shooting hits this enemy
-  const onHit = () => {
-    const randomColor = new THREE.Color(Math.random(), Math.random(), Math.random());
-    setColor(`#${randomColor.getHexString()}`);
-  };
+  /* ------------------------------------------------------
+     REGISTER ENEMY ON MOUNT
+  ------------------------------------------------------ */
+  useEffect(() => {
+    const enemy = registerEnemy(meshRef.current);
+    enemyRef.current = enemy;
 
-  // Expose the onHit function to external callers
-  (meshRef as any).currentHit = onHit;
+    // Enemy specific behavior:
+    enemy.onHit = (damage: number) => {
+      // Reduce health
+      enemy.health -= damage;
+      console.log(`Enemy #${enemy.id} HP:`, enemy.health);
+
+      // Color flash
+      const randomColor = new THREE.Color(Math.random(), Math.random(), Math.random());
+      setColor(`#${randomColor.getHexString()}`);
+
+      // Death logic
+      if (enemy.health <= 0) {
+        meshRef.current.visible = false;
+        console.log(`Enemy #${enemy.id} died`);
+      }
+    };
+
+    return () => unregisterEnemy(enemy);
+  }, []);
 
   return (
-    <mesh ref={meshRef} position={position}>
+    <mesh ref={meshRef} position={position} castShadow>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial color={color} />
     </mesh>

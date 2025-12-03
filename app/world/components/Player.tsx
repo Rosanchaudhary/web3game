@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useEffect, useRef } from "react";
 import Gun from "./Gun";
+import { EnemyStore } from "../stores/enemyStore";
 
 /* ------------------------------------------------------
    BLOCK CREATOR (AABB)
@@ -177,10 +178,14 @@ export default function Player() {
     const fixed = next.clone();
 
     for (const w of WORLD_BLOCKS) {
-      const testX = collideBox(new THREE.Vector3(next.x, pos.current.y, pos.current.z));
+      const testX = collideBox(
+        new THREE.Vector3(next.x, pos.current.y, pos.current.z)
+      );
       if (w.intersectsBox(testX)) fixed.x = pos.current.x;
 
-      const testZ = collideBox(new THREE.Vector3(pos.current.x, pos.current.y, next.z));
+      const testZ = collideBox(
+        new THREE.Vector3(pos.current.x, pos.current.y, next.z)
+      );
       if (w.intersectsBox(testZ)) fixed.z = pos.current.z;
     }
 
@@ -239,33 +244,30 @@ export default function Player() {
     camera.position.copy(pos.current);
 
     /* -------------------------------------------------
-        SHOOTING (ONE-SHOT per mousedown)
-    ------------------------------------------------- */
+    SHOOTING (ONE-SHOT per mousedown)
+------------------------------------------------- */
     if (justClicked.current) {
-      justClicked.current = false; // consume single shot
+      justClicked.current = false;
 
       const direction = camera.getWorldDirection(new THREE.Vector3());
-      raycaster.current.set(camera.position, direction);
+      raycaster.current.set(camera.position.clone(), direction);
 
-      let closest: THREE.Vector3 | null = null;
-      let closestDist = Infinity;
+      const hits = raycaster.current.intersectObjects(
+        EnemyStore.map((e) => e.mesh),
+        false
+      );
 
-      for (const mesh of colliderMeshes.current) {
-        const hits = raycaster.current.intersectObject(mesh, false);
+      if (hits.length > 0) {
+        const mesh = hits[0].object;
+        const enemy = EnemyStore.find((e) => e.mesh === mesh);
 
-        if (hits.length > 0 && hits[0].distance < closestDist) {
-          closestDist = hits[0].distance;
-          closest = hits[0].point.clone();
+        if (enemy) {
+          enemy.onHit(10);
+          console.log("Hit enemy at:", hits[0].point);
         }
-      }
-
-      if (closest) {
-        console.log("🔫 HIT at:", closest);
       }
     }
   });
 
   return <Gun shootingRef={mouseDown} />;
-
-
 }
