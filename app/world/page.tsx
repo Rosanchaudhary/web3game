@@ -11,36 +11,39 @@ import Player from "./components/Player";
 import World from "./components/World";
 import Crosshair from "./components/Crosshair";
 import Enemies from "./components/Enemies";
+import { Physics } from "@react-three/rapier";
 
 export default function Page() {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <Crosshair />
       <Canvas shadows camera={{ fov: 70, position: [0, 1.6, 5] }}>
-        <ambientLight intensity={0.3} />
-        <Environment preset="city" />
-        <AccumulativeShadows
-          temporal
-          frames={80}
-          blend={80}
-          opacity={0.8}
-          scale={50}
-          position={[0, 0.01, 0]}
-        >
-          <RandomizedLight
-            amount={8}
-            radius={6}
-            ambient={0.5}
-            intensity={1}
-            position={[5, 10, 5]}
-            bias={0.001}
-          />
-        </AccumulativeShadows>
-        <directionalLight position={[5, 10, 5]} intensity={0.7} castShadow />
-        {/* <TestGun /> */}
-        <Enemies />
-        <Player />
-        <World />
+        <Physics gravity={[0, -9.81, 0]}>
+          <ambientLight intensity={0.3} />
+          <Environment preset="city" />
+          <AccumulativeShadows
+            temporal
+            frames={80}
+            blend={80}
+            opacity={0.8}
+            scale={50}
+            position={[0, 0.01, 0]}
+          >
+            <RandomizedLight
+              amount={8}
+              radius={6}
+              ambient={0.5}
+              intensity={1}
+              position={[5, 10, 5]}
+              bias={0.001}
+            />
+          </AccumulativeShadows>
+          <directionalLight position={[5, 10, 5]} intensity={0.7} castShadow />
+          {/* <TestGun /> */}
+          <Enemies />
+          <Player />
+          <World />
+        </Physics>
       </Canvas>
     </div>
   );

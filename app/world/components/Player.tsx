@@ -252,10 +252,12 @@ export default function Player() {
       const direction = camera.getWorldDirection(new THREE.Vector3());
       raycaster.current.set(camera.position.clone(), direction);
 
-      const hits = raycaster.current.intersectObjects(
-        EnemyStore.map((e) => e.mesh),
-        false
+      // Only active enemies (still mounted)
+      const enemyMeshes = EnemyStore.map((e) => e.mesh).filter(
+        (m) => m && m.parent
       );
+
+      const hits = raycaster.current.intersectObjects(enemyMeshes, false);
 
       if (hits.length > 0) {
         const mesh = hits[0].object;
