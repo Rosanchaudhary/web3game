@@ -11,57 +11,44 @@ export default function Gun({
 }: {
   shootingRef: React.RefObject<boolean>;
 }) {
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const gun = useRef<THREE.Group>(null);
   const recoil = useRef(0);
 
   const gltf = useGLTF("/3d/lowpoly_rifle.glb");
 
-  /* ------------------------------------------------------
-     INITIAL SETUP — apply your EXACT previous rotation
-  ------------------------------------------------------ */
   useEffect(() => {
-    gltf.scene.traverse((child: THREE.Object3D) => {
-      child.frustumCulled = false;
-    });
+    gltf.scene.traverse((child) => (child.frustumCulled = false));
 
     // Recenter pivot
     const box = new THREE.Box3().setFromObject(gltf.scene);
     const center = box.getCenter(new THREE.Vector3());
     gltf.scene.position.sub(center);
 
-    // Apply rotation to the MODEL, not the group
-    gltf.scene.rotation.set(0, 0, 0); // clear just in case
+    // Apply previous rotation
+    gltf.scene.rotation.set(0, 0, 0);
     gltf.scene.rotateZ(0.1);
     gltf.scene.rotateY(1.5);
     gltf.scene.rotateX(1.5);
+    if (!gun.current) return;
 
-    console.log("Applied rotation to model:", gltf.scene.rotation);
-  }, [gltf]);
+    // PARENT TO CAMERA → this removes flicker
+    camera.add(gun.current);
+    scene.add(camera);
+  }, [camera, gltf, scene]);
 
-  /* ------------------------------------------------------
-     MAIN LOOP
-  ------------------------------------------------------ */
   useFrame(() => {
     if (!gun.current) return;
 
-    // Aim gun with camera
-    gun.current.quaternion.copy(camera.quaternion);
-
-    // FPS gun offset
-    const offset = new THREE.Vector3(0.3, -0.35, -0.7);
+    // Local offset (FPS weapon position)
+    gun.current.position.set(0.3, -0.35, -0.7);
 
     // Recoil
     recoil.current *= 0.85;
     if (shootingRef.current) {
       recoil.current = Math.min(recoil.current + 0.05, 0.15);
     }
-    offset.z -= recoil.current;
-
-    // Convert to world space
-    const world = offset.clone();
-    camera.localToWorld(world);
-    gun.current.position.copy(world);
+    gun.current.position.z -= recoil.current;
   });
 
   return (
@@ -70,5 +57,3 @@ export default function Gun({
     </group>
   );
 }
-
-useGLTF.preload("/3d/lowpoly_rifle.glb");

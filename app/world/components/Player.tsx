@@ -3,35 +3,20 @@ import * as THREE from "three";
 import { useEffect, useRef } from "react";
 import Gun from "./Gun";
 import { EnemyStore } from "../stores/enemyStore";
+import {
+  RigidBody,
+  CuboidCollider,
+  RapierRigidBody 
+} from "@react-three/rapier";
 
-/* ------------------------------------------------------
-   BLOCK CREATOR (AABB)
------------------------------------------------------- */
-const createBlock = (x: number, y: number, z: number, w = 2, h = 2, d = 2) => {
-  return new THREE.Box3(
-    new THREE.Vector3(x - w / 2, y - h / 2, z - d / 2),
-    new THREE.Vector3(x + w / 2, y + h / 2, z + d / 2)
-  );
-};
 
-/* ------------------------------------------------------
-   WORLD BLOCKS (Collision Map)
------------------------------------------------------- */
-const WORLD_BLOCKS = [
-  createBlock(0, 0, 0, 30, 1, 30),
-  createBlock(0, 2.5, -15, 30, 5, 1),
-  createBlock(0, 2.5, 15, 30, 5, 1),
-  createBlock(-15, 2.5, 0, 1, 5, 30),
-  createBlock(15, 2.5, 0, 1, 5, 30),
-];
 
 export default function Player() {
-  const pos = useRef(new THREE.Vector3(0, 1.6, 5));
-  const vel = useRef(new THREE.Vector3(0, 0, 0));
+const body = useRef<RapierRigidBody | null>(null);
+
   const yaw = useRef(0);
   const pitch = useRef(0);
   const keys = useRef<Record<string, boolean>>({});
-  const onGround = useRef(false);
 
   // Sprint / Crouch
   const isSprinting = useRef(false);
@@ -53,34 +38,9 @@ export default function Player() {
   const mouseDown = useRef(false);
   const justClicked = useRef(false);
 
-  const jumpStrength = 9;
-  const gravity = -25;
+  const jumpStrength = 6; // smaller since Rapier uses realistic mass/impulse
 
   const { camera, gl } = useThree();
-
-  /* ------------------------------------------------------
-      PREBUILD COLLIDER MESHES
-  ------------------------------------------------------ */
-  const colliderMeshes = useRef<THREE.Mesh[]>([]);
-  useEffect(() => {
-    colliderMeshes.current = WORLD_BLOCKS.map((b) => {
-      const size = new THREE.Vector3();
-      const center = new THREE.Vector3();
-
-      b.getSize(size);
-      b.getCenter(center);
-
-      const mesh = new THREE.Mesh(
-        new THREE.BoxGeometry(size.x, size.y, size.z),
-        new THREE.MeshBasicMaterial({ visible: false })
-      );
-
-      mesh.position.copy(center);
-      mesh.updateMatrixWorld();
-
-      return mesh;
-    });
-  }, []);
 
   /* ----------------------------
     INPUT
@@ -162,69 +122,22 @@ export default function Player() {
   }, []);
 
   /* ------------------------------------------------------
-      COLLISION HELPERS
-  ------------------------------------------------------ */
-  function collideBox(next: THREE.Vector3) {
-    const radius = 0.3;
-    const height = isCrouching.current ? CROUCH_HEIGHT : STAND_HEIGHT;
-
-    return new THREE.Box3(
-      new THREE.Vector3(next.x - radius, next.y - height / 2, next.z - radius),
-      new THREE.Vector3(next.x + radius, next.y + height / 2, next.z + radius)
-    );
-  }
-
-  function checkVertical(nextY: THREE.Vector3, vy: number) {
-    onGround.current = false;
-
-    const boxY = collideBox(nextY);
-
-    for (const w of WORLD_BLOCKS) {
-      if (!w.intersectsBox(boxY)) continue;
-
-      if (vy < 0) onGround.current = true;
-      return { y: pos.current.y, vy: 0 };
-    }
-
-    return { y: nextY.y, vy };
-  }
-
-  function checkHorizontal(next: THREE.Vector3) {
-    const fixed = next.clone();
-
-    for (const w of WORLD_BLOCKS) {
-      const testX = collideBox(
-        new THREE.Vector3(next.x, pos.current.y, pos.current.z)
-      );
-      if (w.intersectsBox(testX)) fixed.x = pos.current.x;
-
-      const testZ = collideBox(
-        new THREE.Vector3(pos.current.x, pos.current.y, next.z)
-      );
-      if (w.intersectsBox(testZ)) fixed.z = pos.current.z;
-    }
-
-    return fixed;
-  }
-
-  /* ------------------------------------------------------
-     MAIN LOOP
+     MAIN LOOP (Rapier-driven)
   ------------------------------------------------------ */
   useFrame((_, dt) => {
+    if (!body.current) return;
+
     /* CAMERA ROTATION */
     camera.rotation.set(pitch.current, yaw.current, 0, "YXZ");
 
     /* CROUCH SMOOTH */
-    /* CROUCH SMOOTH — modify camera height, NOT player position */
     const targetHeight = isCrouching.current ? CROUCH_HEIGHT : STAND_HEIGHT;
-
     camHeight.current += (targetHeight - camHeight.current) * 0.15;
 
     /* CHOOSE SPEED */
     let currentSpeed = WALK_SPEED;
     if (isCrouching.current) currentSpeed = CROUCH_SPEED;
-    else if (isSprinting.current && onGround.current)
-      currentSpeed = SPRINT_SPEED;
+    else if (isSprinting.current) currentSpeed = SPRINT_SPEED;
 
     /* MOVEMENT VECTORS - CAMERA BASED */
     const forward = new THREE.Vector3();
@@ -241,41 +154,35 @@ export default function Player() {
     if (keys.current["a"]) move.sub(right);
     if (keys.current["d"]) move.add(right);
 
+    let desiredVel = new THREE.Vector3(0, 0, 0);
     if (move.length() > 0) {
-      move.normalize().multiplyScalar(currentSpeed * dt);
-
-      if (!onGround.current) move.multiplyScalar(AIR_CONTROL);
+      desiredVel = move.normalize().multiplyScalar(currentSpeed);
     }
 
-    /* HORIZONTAL */
-    let nextPos = pos.current.clone().add(move);
-    nextPos = checkHorizontal(nextPos);
-    pos.current.copy(nextPos);
+    // Get current linear velocity from Rapier
+    const linvel = body.current.linvel();
 
-    /* VERTICAL */
-    vel.current.y += gravity * dt;
+    // Apply air control multiplier if not grounded: approximate grounded by small y velocity
+    const grounded = Math.abs(linvel.y) < 0.1; // approximation
+    if (!grounded) desiredVel.multiplyScalar(AIR_CONTROL);
 
-    if (keys.current[" "] && onGround.current) {
-      vel.current.y = jumpStrength;
-      onGround.current = false;
+    // Set horizontal velocity while preserving vertical velocity handled by Rapier
+    const nextVel = { x: desiredVel.x, y: linvel.y, z: desiredVel.z };
+
+    body.current.setLinvel(nextVel, true);
+
+    /* JUMP */
+    if (keys.current[" "] && grounded) {
+      // Apply an impulse upwards. Multiply by body mass roughly via impulse mode 'true'
+      body.current.applyImpulse({ x: 0, y: jumpStrength, z: 0 }, true);
     }
 
-    const nextY = pos.current.clone();
-    nextY.y += vel.current.y * dt;
-
-    const vert = checkVertical(nextY, vel.current.y);
-    pos.current.y = vert.y;
-    vel.current.y = vert.vy;
-
-    /* UPDATE CAMERA */
-    camera.position.set(
-      pos.current.x,
-      pos.current.y + camHeight.current,
-      pos.current.z
-    );
+    /* UPDATE CAMERA - follow rigidbody */
+    const t = body.current.translation();
+    camera.position.set(t.x, t.y + camHeight.current, t.z);
 
     /* -------------------------------------------------
-       SHOOTING
+       SHOOTING (raycast in three.js, enemies in scene)
     ------------------------------------------------- */
     if (justClicked.current) {
       justClicked.current = false;
@@ -297,5 +204,25 @@ export default function Player() {
     }
   });
 
-  return <Gun shootingRef={mouseDown} />;
+  return (
+    <>
+      {/* RigidBody that represents the player. We don't render the mesh here; the collider is separate. */}
+      <RigidBody
+        ref={body}
+        colliders={false}
+        type="dynamic"
+        // lock rotations so the player doesn't tip over
+        lockRotations
+        linearDamping={2}
+        angularDamping={1}
+        position={[0, 1.6, 5]}
+      >
+        {/* A capsule-like collider made from two cuboids or better: one cuboid matches the player's size. */}
+        {/* We'll use a single CuboidCollider for simplicity. If you want a capsule feel, swap for two spheres + cylinder or use a proper capsule collider when available. */}
+        <CuboidCollider args={[0.3, 0.8, 0.3]} position={[0, 0.8, 0]} />
+      </RigidBody>
+
+      <Gun shootingRef={mouseDown} />
+    </>
+  );
 }

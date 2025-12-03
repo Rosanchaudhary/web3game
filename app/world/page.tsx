@@ -2,11 +2,6 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import {
-  AccumulativeShadows,
-  Environment,
-  RandomizedLight,
-} from "@react-three/drei";
 import Player from "./components/Player";
 import World from "./components/World";
 import Crosshair from "./components/Crosshair";
