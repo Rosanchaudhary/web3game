@@ -1,8 +1,7 @@
-"use client";
-
-import { useThree, useFrame } from "@react-three/fiber";
+//components/Gun.tsx
 import { useGLTF } from "@react-three/drei";
-import { useEffect, useRef, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
 import * as THREE from "three";
 
 export default function Gun({
@@ -10,74 +9,50 @@ export default function Gun({
 }: {
   shootingRef: React.RefObject<boolean>;
 }) {
-  const { camera, scene } = useThree();
+  const gunRef = useRef<THREE.Group>(null);
+  // const { scene } = useGLTF("/3d/low-poly_g40.glb");
+  const { scene } = useGLTF("/3d/low-poly_kimber_k6s.glb");
 
-  const gunRef = useRef<THREE.Group>(null!);
-  const recoil = useRef(0);
+  // Recoil state
+  const recoilPos = useRef(0);
+  const recoilRot = useRef(0);
 
-  /* ---------------------------------------------------------
-    LOAD + PREPARE MODEL (only runs once)
-  --------------------------------------------------------- */
-  const gltf = useGLTF("/3d/lowpoly_rifle.glb");
+  useFrame((_, delta) => {
+    if (!gunRef.current) return;
 
-  const preparedModel = useMemo(() => {
-    const sceneClone = gltf.scene.clone();
-
-    sceneClone.traverse((child) => {
-      child.frustumCulled = false; // prevent FPS popping
-    });
-
-    // Recenter pivot -------------
-    const box = new THREE.Box3().setFromObject(sceneClone);
-    const center = box.getCenter(new THREE.Vector3());
-    sceneClone.position.sub(center);
-
-    // Default FPS rotation ------
-    sceneClone.rotation.set(1.9, 0.1, -1.7);
-
-    return sceneClone;
-  }, [gltf]);
-
-  /* ---------------------------------------------------------
-    ATTACH GUN TO CAMERA
-  --------------------------------------------------------- */
-  useEffect(() => {
-    const gun = gunRef.current;
-    if (!gun) return;
-
-    camera.add(gun);
-    scene.add(camera);
-
-    // Cleanup on unmount or weapon swap
-    return () => {
-      camera.remove(gun);
-    };
-  }, [camera, scene]);
-
-  /* ---------------------------------------------------------
-    ANIMATION LOOP (recoil + local position)
-  --------------------------------------------------------- */
-  useFrame(() => {
-    const gun = gunRef.current;
-    if (!gun) return;
-
-    // Local weapon offset (FPS position)
-    gun.position.set(2.3, 0.35, 0.9);
-
-    // Recoil decay
-    recoil.current *= 0.85;
-
-    // Apply recoil bump if shooting
+    // If shooting, add recoil
     if (shootingRef.current) {
-      recoil.current = Math.min(recoil.current + 0.05, 0.15);
+      recoilPos.current = THREE.MathUtils.lerp(
+        recoilPos.current,
+        0.12, // backward movement
+        0.2
+      );
+
+      recoilRot.current = THREE.MathUtils.lerp(
+        recoilRot.current,
+        0.25, // rotation kick
+        0.2
+      );
+    } else {
+      // Smoothly return to rest
+      recoilPos.current = THREE.MathUtils.lerp(recoilPos.current, 0, 0.1);
+
+      recoilRot.current = THREE.MathUtils.lerp(recoilRot.current, 0, 0.1);
     }
 
-    gun.position.z -= recoil.current;
+    // Apply recoil to the gun
+    gunRef.current.position.z = -0.8 - recoilPos.current;
+    gunRef.current.rotation.x = 0.3 + recoilRot.current;
   });
 
   return (
-    <group ref={gunRef}>
-      <primitive object={preparedModel} scale={0.25} />
+    <group
+      ref={gunRef}
+      position={[0.1, -0.5, -0.8]}
+      rotation={[0, 1.7, -0.1]}
+      scale={0.1}
+    >
+      <primitive object={scene} />
     </group>
   );
 }

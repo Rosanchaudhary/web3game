@@ -7,13 +7,11 @@ import { EnemyStore } from "../stores/enemyStore";
 import {
   RigidBody,
   CuboidCollider,
-  RapierRigidBody 
+  RapierRigidBody,
 } from "@react-three/rapier";
 
-
-
 export default function Player() {
-const body = useRef<RapierRigidBody | null>(null);
+  const body = useRef<RapierRigidBody | null>(null);
 
   const yaw = useRef(0);
   const pitch = useRef(0);
@@ -223,7 +221,9 @@ const body = useRef<RapierRigidBody | null>(null);
         <CuboidCollider args={[0.3, 0.8, 0.3]} position={[0, 0.8, 0]} />
       </RigidBody>
 
-      <Gun shootingRef={mouseDown} />
+      <primitive object={camera}>
+        <Gun shootingRef={mouseDown} />
+      </primitive>
     </>
   );
 }
