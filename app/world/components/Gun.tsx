@@ -6,43 +6,39 @@ import * as THREE from "three";
 
 export default function Gun({
   shootingRef,
+  activeGunRef,
 }: {
   shootingRef: React.RefObject<boolean>;
+  activeGunRef: React.RefObject<1 | 2>;
 }) {
   const gunRef = useRef<THREE.Group>(null);
-  // const { scene } = useGLTF("/3d/low-poly_g40.glb");
-  const { scene } = useGLTF("/3d/low-poly_kimber_k6s.glb");
+
+  // Load models
+  const pistol = useGLTF("/3d/low-poly_kimber_k6s.glb").scene;
+  const rifle = useGLTF("/3d/low-poly_g40.glb").scene;
 
   // Recoil state
   const recoilPos = useRef(0);
   const recoilRot = useRef(0);
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (!gunRef.current) return;
 
-    // If shooting, add recoil
+    // recoil
     if (shootingRef.current) {
-      recoilPos.current = THREE.MathUtils.lerp(
-        recoilPos.current,
-        0.12, // backward movement
-        0.2
-      );
-
-      recoilRot.current = THREE.MathUtils.lerp(
-        recoilRot.current,
-        0.25, // rotation kick
-        0.2
-      );
+      recoilPos.current = THREE.MathUtils.lerp(recoilPos.current, 0.12, 0.2);
+      recoilRot.current = THREE.MathUtils.lerp(recoilRot.current, 0.25, 0.2);
     } else {
-      // Smoothly return to rest
       recoilPos.current = THREE.MathUtils.lerp(recoilPos.current, 0, 0.1);
-
       recoilRot.current = THREE.MathUtils.lerp(recoilRot.current, 0, 0.1);
     }
 
-    // Apply recoil to the gun
     gunRef.current.position.z = -0.8 - recoilPos.current;
     gunRef.current.rotation.x = 0.3 + recoilRot.current;
+
+    // show active gun
+    gunRef.current.children[0].visible = activeGunRef.current === 1;
+    gunRef.current.children[1].visible = activeGunRef.current === 2;
   });
 
   return (
@@ -52,7 +48,8 @@ export default function Gun({
       rotation={[0, 1.7, -0.1]}
       scale={0.1}
     >
-      <primitive object={scene} />
+      <primitive object={pistol} />
+      <primitive object={rifle} />
     </group>
   );
 }

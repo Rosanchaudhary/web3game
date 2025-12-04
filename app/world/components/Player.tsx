@@ -70,6 +70,28 @@ export default function Player() {
     };
   }, []);
 
+  const activeGun = useRef<1 | 2>(1);
+  const gunDamage = useRef(10);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      const k = e.key;
+
+      if (k === "1") {
+        activeGun.current = 1;
+        gunDamage.current = 10;
+      }
+
+      if (k === "2") {
+        activeGun.current = 2;
+        gunDamage.current = 100;
+      }
+    };
+
+    window.addEventListener("keydown", down);
+    return () => window.removeEventListener("keydown", down);
+  }, []);
+
   /* ----------------------------
     MOUSE LOOK & POINTERLOCK
   ---------------------------- */
@@ -198,7 +220,8 @@ export default function Player() {
       if (hits.length > 0) {
         const mesh = hits[0].object;
         const enemy = EnemyStore.find((e) => e.mesh === mesh);
-        if (enemy) enemy.onHit(10);
+        //if (enemy) enemy.onHit(10);
+        if (enemy) enemy.onHit(gunDamage.current);
       }
     }
   });
@@ -222,7 +245,7 @@ export default function Player() {
       </RigidBody>
 
       <primitive object={camera}>
-        <Gun shootingRef={mouseDown} />
+        <Gun shootingRef={mouseDown} activeGunRef={activeGun} />
       </primitive>
     </>
   );
