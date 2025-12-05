@@ -72,6 +72,9 @@ export default function Player() {
 
   const activeGun = useRef<1 | 2>(1);
   const gunDamage = useRef(10);
+  const gunFireRate = useRef(0.2); // seconds between shots
+  const lastShotTime = useRef(0);
+  const shotFiredRef = useRef(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -80,11 +83,13 @@ export default function Player() {
       if (k === "1") {
         activeGun.current = 1;
         gunDamage.current = 10;
+        gunFireRate.current = 0.2; // pistol -> fast
       }
 
       if (k === "2") {
         activeGun.current = 2;
-        gunDamage.current = 100;
+        gunDamage.current = 25;
+        gunFireRate.current = 0.8; // shotgun -> slow
       }
     };
 
@@ -205,25 +210,36 @@ export default function Player() {
     /* -------------------------------------------------
        SHOOTING (raycast in three.js, enemies in scene)
     ------------------------------------------------- */
-    if (justClicked.current) {
-      justClicked.current = false;
+    const time = performance.now() / 1000; // seconds
 
-      const direction = camera.getWorldDirection(new THREE.Vector3());
-      raycaster.current.set(camera.position.clone(), direction);
+    if (mouseDown.current) {
+      // Check cooldown
+      if (time - lastShotTime.current >= gunFireRate.current) {
+        console.log("Shooting");
+        lastShotTime.current = time;
 
-      const enemyMeshes = EnemyStore.map((e) => e.mesh).filter(
-        (m) => m && m.parent
-      );
+        // Mark that this frame a shot happened
+        shotFiredRef.current = true;
 
-      const hits = raycaster.current.intersectObjects(enemyMeshes, false);
+        // SHOOT
+        const direction = camera.getWorldDirection(new THREE.Vector3());
+        raycaster.current.set(camera.position.clone(), direction);
 
-      if (hits.length > 0) {
-        const mesh = hits[0].object;
-        const enemy = EnemyStore.find((e) => e.mesh === mesh);
-        //if (enemy) enemy.onHit(10);
-        if (enemy) enemy.onHit(gunDamage.current);
+        const enemyMeshes = EnemyStore.map((e) => e.mesh).filter(
+          (m) => m && m.parent
+        );
+
+        const hits = raycaster.current.intersectObjects(enemyMeshes, false);
+
+        if (hits.length > 0) {
+          const mesh = hits[0].object;
+          const enemy = EnemyStore.find((e) => e.mesh === mesh);
+          if (enemy) enemy.onHit(gunDamage.current);
+        }
+        
       }
     }
+    //shotFiredRef.current = false;
   });
 
   return (
@@ -245,7 +261,7 @@ export default function Player() {
       </RigidBody>
 
       <primitive object={camera}>
-        <Gun shootingRef={mouseDown} activeGunRef={activeGun} />
+        <Gun activeGunRef={activeGun} shotFiredRef={shotFiredRef} />
       </primitive>
     </>
   );
