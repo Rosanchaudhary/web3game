@@ -1,4 +1,4 @@
-
+//manager/GunManager.ts
 
 import { GunID, GUNS, GunDefinition } from "../type";
 

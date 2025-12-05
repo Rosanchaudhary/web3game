@@ -73,11 +73,8 @@ export default function Player() {
     };
   }, []);
 
-
-
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-
       if (e.key === "1") gunManager.current.switchTo("pistol");
       if (e.key === "2") gunManager.current.switchTo("shotgun");
     };
@@ -226,13 +223,33 @@ export default function Player() {
           const enemy = EnemyStore.find((e) => e.mesh === mesh);
 
           if (enemy) {
-            enemy.onHit(gm.current.damage);
+            // enemy.onHit(gm.current.damage);
+            const hitPos = hits[0].point;
+            const distance = hitPos.distanceTo(camera.position);
+
+            const gun = gm.current;
+
+            // ignore shots beyond max range
+            if (distance > gun.range.maxRange) return;
+
+            // calculate damage falloff
+            let damage = gun.damage;
+
+            if (distance > gun.range.falloffStart) {
+              const falloff =
+                (distance - gun.range.falloffStart) /
+                (gun.range.maxRange - gun.range.falloffStart);
+
+              const multiplier = 1 - THREE.MathUtils.clamp(falloff, 0, 1);
+
+              damage = gun.damage * multiplier;
+            }
+
+            enemy.onHit(damage);
           }
         }
       }
     }
-
-
   });
 
   return (
@@ -248,7 +265,6 @@ export default function Player() {
         angularDamping={1}
         position={[0, 1.6, 5]}
       >
-       
         <CuboidCollider args={[0.3, 0.8, 0.3]} position={[0, 0.8, 0]} />
       </RigidBody>
 
