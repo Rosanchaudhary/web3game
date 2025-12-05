@@ -18,6 +18,7 @@ export default function Player() {
   const pitch = useRef(0);
   const keys = useRef<Record<string, boolean>>({});
   const gunManager = useRef(new GunManager());
+  const isADS = useRef(false);
 
   // Sprint / Crouch
   const isSprinting = useRef(false);
@@ -70,6 +71,24 @@ export default function Player() {
     return () => {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
+    };
+  }, []);
+
+  useEffect(() => {
+    const down = (e: MouseEvent) => {
+      if (e.button === 2) isADS.current = true; // right mouse down
+    };
+
+    const up = (e: MouseEvent) => {
+      if (e.button === 2) isADS.current = false; // right mouse up
+    };
+
+    window.addEventListener("mousedown", down);
+    window.addEventListener("mouseup", up);
+
+    return () => {
+      window.removeEventListener("mousedown", down);
+      window.removeEventListener("mouseup", up);
     };
   }, []);
 
@@ -269,7 +288,7 @@ export default function Player() {
       </RigidBody>
 
       <primitive object={camera}>
-        <Gun gunManager={gunManager} shotFiredRef={shotFiredRef} />
+        <Gun gunManager={gunManager} shotFiredRef={shotFiredRef} isADS={isADS}/>
       </primitive>
     </>
   );

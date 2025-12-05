@@ -22,8 +22,8 @@ export interface GunDefinition {
     recoverSpeed: number;
   };
   range: {
-    maxRange: number;      // Hard cutoff distance
-    falloffStart: number;  // Distance at which damage starts reducing
+    maxRange: number; // Hard cutoff distance
+    falloffStart: number; // Distance at which damage starts reducing
   };
 
   sounds: {
@@ -63,7 +63,12 @@ export const GUNS: Record<GunID, GunDefinition> = {
     modelPath: "/3d/low-poly_stolzer__son_double_deuce.glb",
     damage: 25,
     fireRate: 0.8,
-    recoil: { posKick: 0.35, rotKick: 0.6, kickSpeed: 0.25, recoverSpeed: 0.05 },
+    recoil: {
+      posKick: 0.35,
+      rotKick: 0.6,
+      kickSpeed: 0.25,
+      recoverSpeed: 0.05,
+    },
     range: {
       falloffStart: 3,
       maxRange: 15,
@@ -78,4 +83,3 @@ export const GUNS: Record<GunID, GunDefinition> = {
     },
   },
 };
-
