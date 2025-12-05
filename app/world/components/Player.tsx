@@ -9,6 +9,7 @@ import {
   CuboidCollider,
   RapierRigidBody,
 } from "@react-three/rapier";
+import { GunManager } from "../manager/GunManager";
 
 export default function Player() {
   const body = useRef<RapierRigidBody | null>(null);
@@ -16,10 +17,12 @@ export default function Player() {
   const yaw = useRef(0);
   const pitch = useRef(0);
   const keys = useRef<Record<string, boolean>>({});
+  const gunManager = useRef(new GunManager());
 
   // Sprint / Crouch
   const isSprinting = useRef(false);
   const isCrouching = useRef(false);
+  const shotFiredRef = useRef(false);
 
   const WALK_SPEED = 7;
   const SPRINT_SPEED = 12;
@@ -70,29 +73,14 @@ export default function Player() {
     };
   }, []);
 
-  const activeGun = useRef<1 | 2>(1);
-  const gunDamage = useRef(10);
-  const gunFireRate = useRef(0.2); // seconds between shots
-  const lastShotTime = useRef(0);
-  const shotFiredRef = useRef(false);
+
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      const k = e.key;
 
-      if (k === "1") {
-        activeGun.current = 1;
-        gunDamage.current = 10;
-        gunFireRate.current = 0.2; // pistol -> fast
-      }
-
-      if (k === "2") {
-        activeGun.current = 2;
-        gunDamage.current = 25;
-        gunFireRate.current = 0.8; // shotgun -> slow
-      }
+      if (e.key === "1") gunManager.current.switchTo("pistol");
+      if (e.key === "2") gunManager.current.switchTo("shotgun");
     };
-
     window.addEventListener("keydown", down);
     return () => window.removeEventListener("keydown", down);
   }, []);
@@ -210,18 +198,20 @@ export default function Player() {
     /* -------------------------------------------------
        SHOOTING (raycast in three.js, enemies in scene)
     ------------------------------------------------- */
+    /* -------------------------------------------------
+   SHOOTING (raycast + GunManager)
+------------------------------------------------- */
+    const gm = gunManager.current;
     const time = performance.now() / 1000; // seconds
 
     if (mouseDown.current) {
-      // Check cooldown
-      if (time - lastShotTime.current >= gunFireRate.current) {
-        console.log("Shooting");
-        lastShotTime.current = time;
+      if (gm.canShoot(time)) {
+        gm.recordShot(time);
 
-        // Mark that this frame a shot happened
+        // notify gun component to play recoil + sound
         shotFiredRef.current = true;
 
-        // SHOOT
+        // ---- Raycast ----
         const direction = camera.getWorldDirection(new THREE.Vector3());
         raycaster.current.set(camera.position.clone(), direction);
 
@@ -234,12 +224,15 @@ export default function Player() {
         if (hits.length > 0) {
           const mesh = hits[0].object;
           const enemy = EnemyStore.find((e) => e.mesh === mesh);
-          if (enemy) enemy.onHit(gunDamage.current);
+
+          if (enemy) {
+            enemy.onHit(gm.current.damage);
+          }
         }
-        
       }
     }
-    //shotFiredRef.current = false;
+
+
   });
 
   return (
@@ -255,13 +248,12 @@ export default function Player() {
         angularDamping={1}
         position={[0, 1.6, 5]}
       >
-        {/* A capsule-like collider made from two cuboids or better: one cuboid matches the player's size. */}
-        {/* We'll use a single CuboidCollider for simplicity. If you want a capsule feel, swap for two spheres + cylinder or use a proper capsule collider when available. */}
+       
         <CuboidCollider args={[0.3, 0.8, 0.3]} position={[0, 0.8, 0]} />
       </RigidBody>
 
       <primitive object={camera}>
-        <Gun activeGunRef={activeGun} shotFiredRef={shotFiredRef} />
+        <Gun gunManager={gunManager} shotFiredRef={shotFiredRef} />
       </primitive>
     </>
   );

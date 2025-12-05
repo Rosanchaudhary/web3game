@@ -1,82 +1,87 @@
-// components/Gun.tsx
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
+import { GunDefinition, GUNS } from "../type";
 
 export default function Gun({
-  activeGunRef,
+  gunManager,
   shotFiredRef,
 }: {
-  activeGunRef: React.RefObject<1 | 2>;
+  gunManager: React.RefObject<{ current: GunDefinition }>;
   shotFiredRef: React.RefObject<boolean>;
 }) {
   const gunRef = useRef<THREE.Group>(null);
 
-  const gunAGLTF = useGLTF("/3d/low-poly_msmc.glb").scene;
-  const gunBGLTF = useGLTF("/3d/low-poly_stolzer__son_double_deuce.glb").scene;
+  const pistolModel = useGLTF(GUNS.pistol.modelPath).scene;
+  const shotgunModel = useGLTF(GUNS.shotgun.modelPath).scene;
 
   const recoilPos = useRef(0);
   const recoilRot = useRef(0);
 
-  const recoilConfig = {
-    1: { posKick: 0.12, rotKick: 0.25, recoverSpeed: 0.1, kickSpeed: 0.2 },
-    2: { posKick: 0.35, rotKick: 0.6, recoverSpeed: 0.05, kickSpeed: 0.25 },
-  };
-
   useFrame(() => {
+
     if (!gunRef.current) return;
 
-    const gunID = activeGunRef.current;
-    const rc = recoilConfig[gunID];
+    const def = gunManager.current.current;
 
+    // recoil logic
     if (shotFiredRef.current) {
       recoilPos.current = THREE.MathUtils.lerp(
         recoilPos.current,
-        rc.posKick,
-        rc.kickSpeed
+        def.recoil.posKick,
+        def.recoil.kickSpeed
       );
+
       recoilRot.current = THREE.MathUtils.lerp(
         recoilRot.current,
-        rc.rotKick,
-        rc.kickSpeed
+        def.recoil.rotKick,
+        def.recoil.kickSpeed
       );
+
+      new Audio(def.sounds.shot).play();
+
       shotFiredRef.current = false;
     } else {
       recoilPos.current = THREE.MathUtils.lerp(
         recoilPos.current,
         0,
-        rc.recoverSpeed
+        def.recoil.recoverSpeed
       );
+
       recoilRot.current = THREE.MathUtils.lerp(
         recoilRot.current,
         0,
-        rc.recoverSpeed
+        def.recoil.recoverSpeed
       );
     }
 
-    // Apply recoil
+    // apply recoil
     gunRef.current.position.z = -0.8 - recoilPos.current;
     gunRef.current.rotation.x = 0.3 + recoilRot.current;
 
-    // Toggle gun visibility
-    const isGunA = activeGunRef.current === 1;
-    gunRef.current.children[0].visible = isGunA;
-    gunRef.current.children[1].visible = !isGunA;
+    gunRef.current.children[0].visible = def.id === "pistol";
+    gunRef.current.children[1].visible = def.id === "shotgun";
   });
 
   return (
     <group ref={gunRef}>
-      <group position={[0.2, -0.5, -0.1]} rotation={[0, 1.7, -0.1]} scale={0.4}>
-        <primitive object={gunAGLTF} />
+      {/* Pistol Model */}
+      <group
+        position={GUNS.pistol.modelOffset.position}
+        rotation={GUNS.pistol.modelOffset.rotation}
+        scale={GUNS.pistol.modelOffset.scale}
+      >
+        <primitive object={pistolModel} />
       </group>
 
+      {/* Shotgun Model */}
       <group
-        position={[0.15, -1.2, -0.6]}
-        rotation={[0, 1.6, -0.1]}
-        scale={0.01}
+        position={GUNS.shotgun.modelOffset.position}
+        rotation={GUNS.shotgun.modelOffset.rotation}
+        scale={GUNS.shotgun.modelOffset.scale}
       >
-        <primitive object={gunBGLTF} />
+        <primitive object={shotgunModel} />
       </group>
     </group>
   );
