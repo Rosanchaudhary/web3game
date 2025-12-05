@@ -39,9 +39,9 @@ export const GUNS: Record<GunID, GunDefinition> = {
     id: "pistol",
     modelPath: "/3d/low-poly_msmc.glb",
     damage: 10,
-    fireRate: 0.2,
+    fireRate: 0.1,
     recoil: { posKick: 0.12, rotKick: 0.25, kickSpeed: 0.2, recoverSpeed: 0.1 },
-    sounds: { shot: "/sfx/gun-fire-346766.mp3" },
+    sounds: { shot: "/sfx/arfire.mp3" },
 
     modelOffset: {
       position: [0.2, -0.5, -0.1],
@@ -56,7 +56,7 @@ export const GUNS: Record<GunID, GunDefinition> = {
     damage: 25,
     fireRate: 0.8,
     recoil: { posKick: 0.35, rotKick: 0.6, kickSpeed: 0.25, recoverSpeed: 0.05 },
-    sounds: { shot: "/sfx/gun-fire-346766.mp3" },
+    sounds: { shot: "/sfx/shotgunfire.mp3" },
 
     modelOffset: {
       position: [0.15, -1.2, -0.6],
