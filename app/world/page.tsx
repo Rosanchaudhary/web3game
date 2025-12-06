@@ -2,7 +2,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import Player from "./components/Player";
+import Player from "./components/Player/Player";
 import World from "./components/World";
 import Crosshair from "./components/Crosshair";
 import Enemies from "./components/Enemies";

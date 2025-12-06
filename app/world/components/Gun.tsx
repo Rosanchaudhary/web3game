@@ -4,15 +4,16 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 import { GunDefinition, GUNS } from "../type";
+import { PlayerInputState } from "./Player/playerTypes";
 
 export default function Gun({
   gunManager,
   shotFiredRef,
-  isADS,
+  inputRef,
 }: {
   gunManager: React.RefObject<{ current: GunDefinition }>;
   shotFiredRef: React.RefObject<boolean>;
-  isADS: React.RefObject<boolean>;
+  inputRef: React.RefObject<PlayerInputState>;
 }) {
   const gunRef = useRef<THREE.Group>(null);
 
@@ -33,7 +34,7 @@ export default function Gun({
     /* -----------------------------
         ADS SMOOTH TRANSITION
     ----------------------------- */
-    const targetADS = isADS.current ? 1 : 0;
+    const targetADS = inputRef.current.isADS ? 1 : 0;
     adsLerp.current = THREE.MathUtils.lerp(adsLerp.current, targetADS, 0.15);
 
     /* -----------------------------
