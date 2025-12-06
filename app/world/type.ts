@@ -7,6 +7,10 @@ export interface EnemyController {
   onHit: (damage: number) => void;
 }
 
+export interface PlayerAPI {
+  takeDamage: (amount: number) => void;
+}
+
 export type GunID = "pistol" | "shotgun";
 
 export interface GunDefinition {

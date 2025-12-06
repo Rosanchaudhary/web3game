@@ -1,6 +1,6 @@
 //components/Player.tsx
 import { useFrame, useThree } from "@react-three/fiber";
-import { useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import Gun from "../Gun";
 import {
   RigidBody,
@@ -14,11 +14,18 @@ import { usePlayerMovement } from "./usePlayerMovement";
 import { usePlayerShooting } from "./usePlayerShooting";
 import { usePlayerZoom } from "./usePlayerZoom";
 import { useGunSwitching } from "./useGunSwitching";
+import { PlayerAPI } from "../../type";
 
-export default function Player() {
+interface PlayerProps {
+  setHealth: (value: number) => void;
+  playerRef: RefObject<PlayerAPI | null>;
+}
+
+export default function Player({ setHealth, playerRef }: PlayerProps) {
   const body = useRef<RapierRigidBody | null>(null);
 
   const gunManager = useRef(new GunManager());
+
   const { yaw, pitch } = usePlayerLook();
   const input = usePlayerInput();
   const { updateMovement } = usePlayerMovement(body, input);
@@ -28,6 +35,29 @@ export default function Player() {
   const { shotFiredRef, updateShooting } = usePlayerShooting(input, gunManager);
   const { updateZoom } = usePlayerZoom(input, gunManager);
   useGunSwitching(gunManager);
+
+  const maxHealth = 100;
+  const currentHealth = useRef(maxHealth);
+
+  // ---- PLAYER DAMAGE FUNCTION ----
+  function takeDamage(amount: number) {
+    currentHealth.current = Math.max(0, currentHealth.current - amount);
+    setHealth(currentHealth.current);
+
+    console.log("PLAYER HIT:", currentHealth.current);
+
+    if (currentHealth.current <= 0) {
+      console.log("PLAYER DEAD");
+    }
+  }
+
+  // Expose takeDamage to Enemies
+  useEffect(() => {
+    if (!playerRef) return;
+    playerRef.current = {
+      takeDamage,
+    };
+  }, []);
 
   useFrame(() => {
     camera.rotation.set(pitch.current, yaw.current, 0, "YXZ");
