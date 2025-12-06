@@ -1,3 +1,4 @@
+//components/Gun.tsx
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
@@ -11,7 +12,7 @@ export default function Gun({
 }: {
   gunManager: React.RefObject<{ current: GunDefinition }>;
   shotFiredRef: React.RefObject<boolean>;
-  isADS: any;
+  isADS: React.RefObject<boolean>;
 }) {
   const gunRef = useRef<THREE.Group>(null);
 

@@ -44,6 +44,7 @@ export default function Player() {
   const jumpStrength = 6; // smaller since Rapier uses realistic mass/impulse
 
   const { camera, gl } = useThree();
+  const gm = gunManager.current;
 
   /* ----------------------------
     INPUT
@@ -160,6 +161,23 @@ export default function Player() {
     /* CAMERA ROTATION */
     camera.rotation.set(pitch.current, yaw.current, 0, "YXZ");
 
+    /* CAMERA ZOOM ON ADS */
+    const cam = camera as THREE.PerspectiveCamera;
+
+    // default hip-fire FOV
+    const hipFov = 70;
+
+    // ADS target FOV comes from gun definition
+    const gun = gunManager.current.current;
+
+    const targetFov = isADS.current ? gun.ads.zoomFov : hipFov;
+
+    // Smooth lerp speed based on weapon
+    // eslint-disable-next-line react-hooks/immutability
+    cam.fov += (targetFov - cam.fov) * gun.ads.speed;
+
+    cam.updateProjectionMatrix();
+
     /* CROUCH SMOOTH */
     const targetHeight = isCrouching.current ? CROUCH_HEIGHT : STAND_HEIGHT;
     camHeight.current += (targetHeight - camHeight.current) * 0.15;
@@ -217,7 +235,7 @@ export default function Player() {
     /* -------------------------------------------------
    SHOOTING (raycast + GunManager)
 ------------------------------------------------- */
-    const gm = gunManager.current;
+
     const time = performance.now() / 1000; // seconds
 
     if (mouseDown.current) {
@@ -288,7 +306,11 @@ export default function Player() {
       </RigidBody>
 
       <primitive object={camera}>
-        <Gun gunManager={gunManager} shotFiredRef={shotFiredRef} isADS={isADS}/>
+        <Gun
+          gunManager={gunManager}
+          shotFiredRef={shotFiredRef}
+          isADS={isADS}
+        />
       </primitive>
     </>
   );

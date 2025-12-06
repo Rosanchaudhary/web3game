@@ -30,6 +30,10 @@ export interface GunDefinition {
     shot: string;
     pump?: string;
   };
+  ads: {
+    zoomFov: number;    // FOV when aiming
+    speed: number;      // smooth speed (0–1)
+  };
 
   modelOffset: {
     position: [number, number, number];
@@ -50,6 +54,10 @@ export const GUNS: Record<GunID, GunDefinition> = {
       maxRange: 50,
     },
     sounds: { shot: "/sfx/arfire.mp3" },
+    ads: {
+      zoomFov: 50,     // slightly zoom
+      speed: 0.12,     // transition speed
+    },
 
     modelOffset: {
       position: [0.2, -0.5, -0.1],
@@ -73,7 +81,10 @@ export const GUNS: Record<GunID, GunDefinition> = {
       falloffStart: 3,
       maxRange: 15,
     },
-
+    ads: {
+      zoomFov: 60,     // wider ADS (shotguns don’t zoom much)
+      speed: 0.10,
+    },
     sounds: { shot: "/sfx/shotgunfire.mp3" },
 
     modelOffset: {
