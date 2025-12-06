@@ -1,6 +1,8 @@
 //manager/GunManager.ts
 
-import { GunID, GUNS, GunDefinition } from "../type";
+import { GunDefinition, GunID, GUNS } from "../type";
+
+
 
 export class GunManager {
   current: GunDefinition = GUNS.pistol;

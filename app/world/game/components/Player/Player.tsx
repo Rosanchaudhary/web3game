@@ -16,6 +16,7 @@ import { usePlayerZoom } from "./usePlayerZoom";
 import { useGunSwitching } from "./useGunSwitching";
 import { PlayerAPI } from "../../type";
 
+
 interface PlayerProps {
   setHealth: (value: number) => void;
   playerRef: RefObject<PlayerAPI | null>;
