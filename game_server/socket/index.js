@@ -10,7 +10,7 @@ export default function initializeSocket(io) {
   io.on("connection", (socket) => {
     console.log("🔥 New client connected:", socket.id);
 
-    registerGameRoom(io,socket);
+    registerGameRoom(io,socket); 
 
     registerJoinRoom(io, socket);
     registerLeaveRoom(io, socket);

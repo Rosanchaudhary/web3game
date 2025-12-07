@@ -3,92 +3,57 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-// Next.js + TypeScript single-file page component that renders a canvas
-// with a movable square and arrow buttons. Place this file in your
-// `app/` (App Router) as `app/canvas/page.tsx` or in `pages/` as
-// `pages/canvas.tsx` depending on your project structure.
+type Position = { x: number; y: number; z: number };
+type PlayerMap = Record<string, Position>;
 
-type Position = { x: number; y: number };
+const MOVE_STEP = 0.2;
+const roomId = "game-room-1";
 
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 500;
-const SQUARE_SIZE = 60;
-const MOVE_STEP = 20;
-
-export default function CanvasPage() {
-  const roomId = "game-room-1";
+export default function Game3DMovement() {
   const socketRef = useRef<Socket | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [pos, setPos] = useState<Position>({
-    x: (CANVAS_WIDTH - SQUARE_SIZE) / 2,
-    y: (CANVAS_HEIGHT - SQUARE_SIZE) / 2,
-  });
+  const [players, setPlayers] = useState<PlayerMap>({});
 
-  // Draw function: clears canvas then draws frame and square
-  const draw = (ctx: CanvasRenderingContext2D, p: Position) => {
-    // clear
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  // Movement function
+  const move = (dx: number, dz: number) => {
+    const socket = socketRef.current;
+    if (!socket) return;
 
-    // outer frame (stroke)
-    ctx.save();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#1f2937"; // neutral dark
-    ctx.strokeRect(2, 2, CANVAS_WIDTH - 4, CANVAS_HEIGHT - 4);
-    ctx.restore();
+    const me = players[socket.id];
+    if (!me) return;
 
-    // square
-    ctx.save();
-    ctx.fillStyle = "#ef4444"; // red square
-    ctx.fillRect(p.x, p.y, SQUARE_SIZE, SQUARE_SIZE);
-    ctx.restore();
+    socket.emit("position", {
+      roomId,
+      x: me.x + dx,
+      y: me.y,
+      z: me.z + dz, // z does NOT change
+    });
   };
 
-  // redraw whenever position changes
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    draw(ctx, pos);
-  }, [pos]);
-
-  // move with bounds
-  const move = (dx: number, dy: number) => {
-    const nextX = Math.min(Math.max(pos.x + dx, 0), CANVAS_WIDTH - SQUARE_SIZE);
-    const nextY = Math.min(
-      Math.max(pos.y + dy, 0),
-      CANVAS_HEIGHT - SQUARE_SIZE
-    );
-    socketRef.current?.emit("position", { roomId, x: nextX, y: nextY });
-  };
-
-  // keyboard controls: arrow keys + WASD
+  // Keyboard movement
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       switch (e.key) {
         case "ArrowUp":
         case "w":
         case "W":
-          e.preventDefault();
-          move(0, -MOVE_STEP);
+          move(0, MOVE_STEP);
           break;
+
         case "ArrowDown":
         case "s":
         case "S":
-          e.preventDefault();
-          move(0, MOVE_STEP);
+          move(0, -MOVE_STEP);
           break;
+
         case "ArrowLeft":
         case "a":
         case "A":
-          e.preventDefault();
           move(-MOVE_STEP, 0);
           break;
+
         case "ArrowRight":
         case "d":
         case "D":
-          e.preventDefault();
           move(MOVE_STEP, 0);
           break;
       }
@@ -96,104 +61,94 @@ export default function CanvasPage() {
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [players]);
 
-  // click / touch friendly handlers
-  const onUp = () => move(0, -MOVE_STEP);
-  const onDown = () => move(0, MOVE_STEP);
-  const onLeft = () => move(-MOVE_STEP, 0);
-  const onRight = () => move(MOVE_STEP, 0);
-  const reset = () =>
-    setPos({
-      x: (CANVAS_WIDTH - SQUARE_SIZE) / 2,
-      y: (CANVAS_HEIGHT - SQUARE_SIZE) / 2,
-    });
-
+  // Init socket + sync player positions
   useEffect(() => {
     const socket = io("http://192.168.2.4:3001");
     socketRef.current = socket;
 
-    // Join room
     socket.emit("join-game-room", { roomId });
-    socket.on("new-position", (data) => {
-      console.log(data);
-      setPos({ x: data.x, y: data.y });
+
+    // Server broadcast new position
+    socket.on("new-position", ({ playerId, x, y, z }) => {
+      setPlayers((prev) => ({
+        ...prev,
+        [playerId]: { x, y, z },
+      }));
     });
+
+    // New player joined
+    socket.on("player-joined", ({ playerId }) => {
+      setPlayers((prev) => ({
+        ...prev,
+        [playerId]: { x: 0, y: 0.5, z: -5 }, // default spawn
+      }));
+    });
+
+    // Player leaves
+    socket.on("player-left", ({ playerId }) => {
+      setPlayers((prev) => {
+        const copy = { ...prev };
+        delete copy[playerId];
+        return copy;
+      });
+    });
+
+    // Add myself
+    socket.on("connect", () => {
+      setPlayers((prev) => ({
+        ...prev,
+        [socket.id]: { x: 0, y: 0.5, z: -5 },
+      }));
+    });
+
+    return () => socket.disconnect();
   }, []);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="flex flex-row gap-6">
-        {/* Canvas container */}
-        <div className="rounded-md shadow-md bg-white p-4">
-          <div className="mb-2 text-sm text-gray-600">Canvas frame</div>
-          <canvas
-            ref={canvasRef}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            className="block"
-            aria-label="Movable square canvas"
-          />
-        </div>
+    <main className="min-h-screen flex flex-col items-center justify-center p-10 bg-gray-100">
+      <h1 className="text-xl mb-6 text-gray-700">3D Multiplayer Movement</h1>
 
-        {/* Controls */}
-        <div className="flex flex-col items-center gap-3 bg-white p-4 rounded-md shadow-md">
-          <div className="text-sm text-gray-600">Controls</div>
+      <div className="p-4 bg-white shadow rounded">
+        <p className="text-gray-600 mb-2 text-center">Controls</p>
 
-          <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2">
+          <button
+            className="w-16 h-16 border rounded"
+            onClick={() => move(0, MOVE_STEP)}
+          >
+            ↑
+          </button>
+
+          <div className="flex gap-3">
             <button
-              onClick={onUp}
-              className="w-12 h-12 rounded border border-gray-300 flex items-center justify-center active:scale-95"
-              aria-label="Move up"
+              className="w-16 h-16 border rounded"
+              onClick={() => move(-MOVE_STEP, 0)}
             >
-              ↑
+              ←
             </button>
-
-            <div className="flex gap-2">
-              <button
-                onClick={onLeft}
-                className="w-12 h-12 rounded border border-gray-300 flex items-center justify-center active:scale-95"
-                aria-label="Move left"
-              >
-                ←
-              </button>
-
-              <button
-                onClick={onRight}
-                className="w-12 h-12 rounded border border-gray-300 flex items-center justify-center active:scale-95"
-                aria-label="Move right"
-              >
-                →
-              </button>
-            </div>
-
             <button
-              onClick={onDown}
-              className="w-12 h-12 rounded border border-gray-300 flex items-center justify-center active:scale-95"
-              aria-label="Move down"
+              className="w-16 h-16 border rounded"
+              onClick={() => move(MOVE_STEP, 0)}
             >
-              ↓
+              →
             </button>
           </div>
 
-          <div className="flex flex-col gap-2 w-full mt-2">
-            <button
-              onClick={reset}
-              className="py-2 rounded bg-gray-200 hover:bg-gray-300"
-            >
-              Reset
-            </button>
-
-            <div className="text-xs text-gray-500">
-              Tip: you can also use arrow keys or WASD.
-            </div>
-
-            <div className="text-xs text-gray-500">
-              Position: x: {Math.round(pos.x)}, y: {Math.round(pos.y)}
-            </div>
-          </div>
+          <button
+            className="w-16 h-16 border rounded"
+            onClick={() => move(0, -MOVE_STEP)}
+          >
+            ↓
+          </button>
         </div>
       </div>
+
+      {/* Debug player positions */}
+      <pre className="mt-6 bg-white p-4 rounded shadow text-sm">
+        {JSON.stringify(players, null, 2)}
+      </pre>
     </main>
   );
 }

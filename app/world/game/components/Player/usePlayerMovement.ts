@@ -1,11 +1,11 @@
-import { useRef } from "react";
+import { RefObject, useRef } from "react";
 import * as THREE from "three";
 import { RapierRigidBody } from "@react-three/rapier";
 import { PlayerInputState } from "./playerTypes";
 
 export function usePlayerMovement(
-  body: React.MutableRefObject<RapierRigidBody | null>,
-  input: React.MutableRefObject<PlayerInputState>
+  body:RefObject<RapierRigidBody | null>,
+  input:RefObject<PlayerInputState>
 ) {
   const STAND_HEIGHT = 1.6;
   const CROUCH_HEIGHT = 1.0;
@@ -13,7 +13,7 @@ export function usePlayerMovement(
 
   const WALK = 7;
   const SPRINT = 12;
-  const CROUCH = 3;
+  const CROUCH = 3; 
   const AIR_CONTROL = 0.4;
   const JUMP = 6;
 
@@ -60,6 +60,7 @@ export function usePlayerMovement(
       body.current.applyImpulse({ x: 0, y: JUMP, z: 0 }, true);
 
     const pos = body.current.translation();
+
     camera.position.set(pos.x, pos.y + camHeight.current, pos.z);
   }
 

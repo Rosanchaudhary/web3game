@@ -1,6 +1,6 @@
 //component/Enemy.txt
 
-import { useRef, useState, useEffect, RefObject } from "react";
+import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { RigidBody } from "@react-three/rapier";
 import {
@@ -8,73 +8,45 @@ import {
   unregisterEnemy,
   EnemyController,
 } from "../stores/enemyStore";
-import { useFrame } from "@react-three/fiber";
-import { PlayerAPI } from "../type";
+
+import { Socket } from "socket.io-client";
 
 interface EnemyProps {
+  id: string; 
   position: [number, number, number];
-    playerRef: RefObject<PlayerAPI | null>;
+
+  socketRef: React.RefObject<Socket | null>;
 }
 
 export default function Enemy({
+  id,
   position = [0, 0.5, -5] as [number, number, number],
-  playerRef,
+  socketRef,
 }: EnemyProps) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const enemyRef = useRef<EnemyController | null>(null);
 
-  const [hp, setHp] = useState(100);
-  const [color, setColor] = useState("red");
-
-  const attackCooldown = useRef(0);
-
   useEffect(() => {
+    // Register enemy hitbox
     const enemy = registerEnemy(meshRef.current);
     enemyRef.current = enemy;
 
+    // When local player shoots this enemy → send damage to server
     enemy.onHit = (damage: number) => {
-      setHp((h) => {
-        const newHP = h - damage;
-
-        const randomColor = new THREE.Color(
-          Math.random(),
-          Math.random(),
-          Math.random()
-        );
-        setColor(`#${randomColor.getHexString()}`);
-
-        return newHP;
+      socketRef.current?.emit("damage-player", {
+        targetId: id,
+        damage,
       });
     };
 
     return () => unregisterEnemy(enemy);
-  }, []);
-
-  // ---- DAMAGE PLAYER WHEN CLOSE ----
-  useFrame((_, delta) => {
-    if (!playerRef?.current) return;
-    if (hp <= 0) return;
-
-    attackCooldown.current -= delta;
-
-    const enemyPos = meshRef.current.getWorldPosition(new THREE.Vector3());
-    const playerPos = _.camera.getWorldPosition(new THREE.Vector3());
-
-    const dist = enemyPos.distanceTo(playerPos);
-
-    if (dist < 1.7 && attackCooldown.current <= 0) {
-      playerRef.current.takeDamage(10);
-      attackCooldown.current = 1; // 1 second cooldown
-    }
-  });
-
-  if (hp <= 0) return null;
+  }, [id, socketRef]);
 
   return (
     <RigidBody colliders="cuboid" position={position} mass={1}>
       <mesh ref={meshRef} castShadow>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={color} />
+        <meshStandardMaterial color={"red"} />
       </mesh>
     </RigidBody>
   );
