@@ -16,24 +16,29 @@ interface EnemyProps {
   position: [number, number, number];
 
   socketRef: React.RefObject<Socket | null>;
+  roomId:string;
 }
 
 export default function Enemy({
   id,
   position = [0, 0.5, -5] as [number, number, number],
   socketRef,
+  roomId
 }: EnemyProps) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const enemyRef = useRef<EnemyController | null>(null);
 
   useEffect(() => {
+
     // Register enemy hitbox
     const enemy = registerEnemy(meshRef.current);
     enemyRef.current = enemy;
 
     // When local player shoots this enemy → send damage to server
     enemy.onHit = (damage: number) => {
+
       socketRef.current?.emit("damage-player", {
+        roomId,
         targetId: id,
         damage,
       });

@@ -1,3 +1,4 @@
+//page.tsx
 "use client";
 
 import { Canvas } from "@react-three/fiber";
@@ -11,12 +12,19 @@ import Enemy from "./components/Enemy";
 import { io, Socket } from "socket.io-client";
 
 type Position = { x: number; y: number; z: number };
-type PlayerMap = Record<string, Position>;
+type PlayerData = {
+  id: string;
+  health: number;
+  dead: boolean;
+  position: Position;
+};
+
+type PlayerMap = Record<string, PlayerData>;
 
 export default function Page() {
   const roomId = "game-room-1";
+  const [me, setMe] = useState<PlayerData | null>(null);
 
-  const [health, setHealth] = useState(100);
   const [enemies, setEnemies] = useState<PlayerMap>({});
 
   const socketRef = useRef<Socket | null>(null);
@@ -27,28 +35,40 @@ export default function Page() {
 
     socket.emit("join-game-room", { roomId });
 
-    socket.on("new-position", ({ playerId, x, y, z }) => {
-      if (playerId === socket.id) return;
-      setEnemies((prev) => ({ ...prev, [playerId]: { x, y, z } }));
+    socket.on("player-joined", (player) => {
+      if (player.id === socket.id) {
+        setMe(player);
+        return;
+      }
+      setEnemies((prev) => ({ ...prev, [player.id]: player }));
     });
 
-    socket.on("player-joined", ({ playerId }) => {
-      if (playerId === socket.id) return;
-      setEnemies((prev) => ({
-        ...prev,
-        [playerId]: { x: 0, y: 0.5, z: -5 },
-      }));
+    socket.on("player-state", (player) => {
+      if (player.id === socket.id) {
+        setMe(player); // <--- full object
+      } else {
+        setEnemies((prev) => ({
+          ...prev,
+          [player.id]: player,
+        }));
+      }
     });
 
     socket.on("player-left", ({ playerId }) => {
       setEnemies((prev) => {
-        const copy = { ...prev };
-        delete copy[playerId];
-        return copy;
+        const updated = { ...prev };
+        delete updated[playerId];
+        return updated;
       });
     });
 
-    socket.on("health-update", (newHP: number) => setHealth(newHP));
+    socket.on("player-respawned", (player) => {
+      if (player.id === socket.id) {
+        setMe(player); // dead = false, position resets
+      } else {
+        setEnemies((prev) => ({ ...prev, [player.id]: player }));
+      }
+    });
 
     socket.on("connect", () => {
       console.log("My ID:", socket.id);
@@ -59,10 +79,33 @@ export default function Page() {
     };
   }, []);
 
+  console.log(me?.dead)
+
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <Crosshair />
-      <HealthBar health={health} />
+      {me && <HealthBar health={me.health} />}
+      {/* DEAD SCREEN OVERLAY */}
+      {me && me.dead && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            color: "red",
+            fontSize: "48px",
+            fontWeight: "bold",
+            textAlign: "center",
+            pointerEvents: "none",
+            textShadow: "0px 0px 10px black",
+          }}
+        >
+          YOU ARE DEAD
+          <br />
+          <span style={{ fontSize: "32px" }}>Respawning...</span>
+        </div>
+      )}
 
       <Canvas shadows camera={{ fov: 70, position: [0, 1.6, 5] }}>
         <Physics gravity={[0, -9.81, 0]}>
@@ -82,16 +125,25 @@ export default function Page() {
             shadow-camera-bottom={-20}
           />
 
-          {Object.entries(enemies).map(([id, enemy]) => (
-            <Enemy
-              key={id}
-              id={id}
-              position={[enemy.x, enemy.y, enemy.z]}
-              socketRef={socketRef}
-            />
-          ))}
+          {Object.values(enemies).map((enemy) =>
+            enemy.dead ? null : (
+              <Enemy
+                key={enemy.id}
+                id={enemy.id}
+                position={[
+                  enemy.position.x,
+                  enemy.position.y,
+                  enemy.position.z,
+                ]}
+                socketRef={socketRef}
+                roomId={roomId}
+              />
+            )
+          )}
 
-          <Player socketRef={socketRef} />
+          {me && !me.dead && (
+            <Player socketRef={socketRef} position={me.position} />
+          )}
           <World />
         </Physics>
       </Canvas>

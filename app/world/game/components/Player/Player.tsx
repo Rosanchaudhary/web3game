@@ -1,6 +1,6 @@
 //components/Player.tsx
 import { useFrame, useThree } from "@react-three/fiber";
-import {  useRef } from "react";
+import { useRef } from "react";
 import Gun from "../Gun";
 import {
   RigidBody,
@@ -15,12 +15,13 @@ import { usePlayerShooting } from "./usePlayerShooting";
 import { usePlayerZoom } from "./usePlayerZoom";
 import { useGunSwitching } from "./useGunSwitching";
 import { Socket } from "socket.io-client";
-
+type Position = { x: number; y: number; z: number };
 interface PlayerProps {
   socketRef: React.RefObject<Socket | null>;
+  position: Position;
 }
 
-export default function Player({ socketRef }: PlayerProps) {
+export default function Player({ socketRef, position }: PlayerProps) {
   const body = useRef<RapierRigidBody | null>(null);
 
   const gunManager = useRef(new GunManager());
@@ -41,7 +42,6 @@ export default function Player({ socketRef }: PlayerProps) {
     updateMovement(camera);
     updateShooting(camera);
 
-    console.log("Position of player", body.current?.translation());
     socketRef.current!.emit("position", {
       roomId: "game-room-1",
       x: body.current?.translation().x,
@@ -61,7 +61,7 @@ export default function Player({ socketRef }: PlayerProps) {
         lockRotations
         linearDamping={2}
         angularDamping={1}
-        position={[0, 1.6, 5]}
+        position={[position.x,position.y,position.z]}
       >
         <CuboidCollider args={[0.3, 0.8, 0.3]} position={[0, 0.8, 0]} />
       </RigidBody>
