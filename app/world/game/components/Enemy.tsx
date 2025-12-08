@@ -1,8 +1,8 @@
-//component/Enemy.txt
-
 import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { RigidBody } from "@react-three/rapier";
+import { useGLTF } from "@react-three/drei";
+
 import {
   registerEnemy,
   unregisterEnemy,
@@ -12,31 +12,32 @@ import {
 import { Socket } from "socket.io-client";
 
 interface EnemyProps {
-  id: string; 
+  id: string;
   position: [number, number, number];
-
   socketRef: React.RefObject<Socket | null>;
-  roomId:string;
+  roomId: string;
 }
 
 export default function Enemy({
   id,
-  position = [0, 0.5, -5] as [number, number, number],
+  position = [0, 0.5, -5],
   socketRef,
-  roomId
+  roomId,
 }: EnemyProps) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const enemyRef = useRef<EnemyController | null>(null);
 
-  useEffect(() => {
+  // 🔥 Load enemy model (replace with your model path)
+  const { scene } = useGLTF("/3d/tank_low_poly.glb");
+scene.position.set(0.3, 0.30, 0); 
+  
 
+  useEffect(() => {
     // Register enemy hitbox
     const enemy = registerEnemy(meshRef.current);
     enemyRef.current = enemy;
 
-    // When local player shoots this enemy → send damage to server
     enemy.onHit = (damage: number) => {
-
       socketRef.current?.emit("damage-player", {
         roomId,
         targetId: id,
@@ -45,14 +46,18 @@ export default function Enemy({
     };
 
     return () => unregisterEnemy(enemy);
-  }, [id, socketRef]);
+  }, [id, roomId, socketRef]);
 
   return (
     <RigidBody colliders="cuboid" position={position} mass={1}>
-      <mesh ref={meshRef} castShadow>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={"red"} />
+      {/* Invisible hitbox (or small cube) */}
+      <mesh ref={meshRef} visible={false}>
+        <boxGeometry args={[1, 0.5, 1.5]}  />
+        <meshBasicMaterial color="white" wireframe />
       </mesh>
+
+      {/* Your 3D model */}
+      <primitive  object={scene} scale={0.005} />
     </RigidBody>
   );
 }
