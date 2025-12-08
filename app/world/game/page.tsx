@@ -79,7 +79,7 @@ export default function Page() {
     };
   }, []);
 
-  console.log(me?.dead)
+  console.log(me?.dead);
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
@@ -89,16 +89,11 @@ export default function Page() {
       {me && me.dead && (
         <div
           style={{
-            position: "absolute",
+            position: "fixed",
             top: "50%",
             left: "50%",
-            transform: "translate(-50%, -50%)",
-            color: "red",
-            fontSize: "48px",
-            fontWeight: "bold",
-            textAlign: "center",
             pointerEvents: "none",
-            textShadow: "0px 0px 10px black",
+            zIndex: 9999,
           }}
         >
           YOU ARE DEAD
