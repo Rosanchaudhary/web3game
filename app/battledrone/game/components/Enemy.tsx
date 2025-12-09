@@ -25,6 +25,7 @@ export default function Enemy({
 
   const { scene } = useGLTF("/3d/Robot Enemy Flying Gun.glb");
   scene.position.set(0, -0.2, 0);
+  scene.rotation.set(0, 0.19, 0);
 
   useEffect(() => {
     const enemy = registerEnemy(meshRef.current);

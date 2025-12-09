@@ -132,7 +132,7 @@ export default function Page() {
                   enemy.position.z,
                 ]}
                 rotation={[
-                  enemy.rotation.x,
+                  0,
                   enemy.rotation.y,
                   enemy.rotation.z,
                 ]}

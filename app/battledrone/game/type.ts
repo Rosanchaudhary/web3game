@@ -64,9 +64,9 @@ export const GUNS: Record<GunID, GunDefinition> = {
     },
 
     modelOffset: {
-      position: [0.2, -0.5, -0.1],
-      rotation: [0, 1.7, -0.1],
-      scale: 0.4,
+      position: [0.3, -0.9, -0.1],
+      rotation: [0, -1.4, 0],
+      scale: 1,
     },
   },
 
