@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { GunDefinition, GUNS } from "../type";
 import { PlayerInputState } from "./Player/playerTypes";
 
-export default function Gun({
+export default function Gun({ 
   gunManager,
   shotFiredRef,
   inputRef,

@@ -48,7 +48,7 @@ export default function battleDroneGame(io, socket) {
 
     if (rotation) {
       player.rotation = {
-        x: -rotation.x,
+        x: rotation.x,
         y: -rotation.y,
         z: rotation.z ?? 0,
       };
