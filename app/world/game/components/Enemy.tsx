@@ -28,9 +28,8 @@ export default function Enemy({
   const enemyRef = useRef<EnemyController | null>(null);
 
   // 🔥 Load enemy model (replace with your model path)
-  const { scene } = useGLTF("/3d/tank_low_poly.glb");
-scene.position.set(0.3, 0.30, 0); 
-  
+  const { scene } = useGLTF("/3d/Robot Enemy Flying Gun.glb");
+  scene.position.set(0, -0.9, 0);
 
   useEffect(() => {
     // Register enemy hitbox
@@ -49,15 +48,15 @@ scene.position.set(0.3, 0.30, 0);
   }, [id, roomId, socketRef]);
 
   return (
-    <RigidBody colliders="cuboid" position={position} mass={1}>
+    <RigidBody colliders="cuboid" position={position} mass={0}>
       {/* Invisible hitbox (or small cube) */}
-      <mesh ref={meshRef} visible={false}>
-        <boxGeometry args={[1, 0.5, 1.5]}  />
+      <mesh ref={meshRef} visible={true}>
+        <boxGeometry args={[1, 0.9, 1.2]} />
         <meshBasicMaterial color="white" wireframe />
       </mesh>
 
       {/* Your 3D model */}
-      <primitive  object={scene} scale={0.005} />
+      <primitive object={scene} scale={2} />
     </RigidBody>
   );
 }

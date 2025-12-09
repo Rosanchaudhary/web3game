@@ -79,7 +79,7 @@ export default function Page() {
     };
   }, []);
 
-  console.log(me?.dead);
+
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
