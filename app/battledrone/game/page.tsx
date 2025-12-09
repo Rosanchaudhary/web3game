@@ -12,11 +12,13 @@ import Enemy from "./components/Enemy";
 import { io, Socket } from "socket.io-client";
 
 type Position = { x: number; y: number; z: number };
+type Rotation = { x: number; y: number; z: number };
 type PlayerData = {
   id: string;
   health: number;
   dead: boolean;
   position: Position;
+  rotation:Rotation;
 };
 
 type PlayerMap = Record<string, PlayerData>;
@@ -33,9 +35,9 @@ export default function Page() {
     const socket = io("http://192.168.2.4:3001");
     socketRef.current = socket;
 
-    socket.emit("join-game-room", { roomId });
+    socket.emit("join-drone-game-room", { roomId });
 
-    socket.on("player-joined", (player) => {
+    socket.on("drone-game-player-joined", (player) => {
       if (player.id === socket.id) {
         setMe(player);
         return;
@@ -43,9 +45,10 @@ export default function Page() {
       setEnemies((prev) => ({ ...prev, [player.id]: player }));
     });
 
-    socket.on("player-state", (player) => {
+    socket.on("drone-game-player-state", (player) => {
+      
       if (player.id === socket.id) {
-        setMe(player); // <--- full object
+        setMe(player);
       } else {
         setEnemies((prev) => ({
           ...prev,
@@ -54,7 +57,7 @@ export default function Page() {
       }
     });
 
-    socket.on("player-left", ({ playerId }) => {
+    socket.on("drone-game-player-left", ({ playerId }) => {
       setEnemies((prev) => {
         const updated = { ...prev };
         delete updated[playerId];
@@ -62,7 +65,7 @@ export default function Page() {
       });
     });
 
-    socket.on("player-respawned", (player) => {
+    socket.on("drone-game-player-respawned", (player) => {
       if (player.id === socket.id) {
         setMe(player); // dead = false, position resets
       } else {
@@ -78,8 +81,6 @@ export default function Page() {
       socket.disconnect();
     };
   }, []);
-
-
 
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
@@ -129,6 +130,11 @@ export default function Page() {
                   enemy.position.x,
                   enemy.position.y,
                   enemy.position.z,
+                ]}
+                rotation={[
+                  enemy.rotation.x,
+                  enemy.rotation.y,
+                  enemy.rotation.z,
                 ]}
                 socketRef={socketRef}
                 roomId={roomId}

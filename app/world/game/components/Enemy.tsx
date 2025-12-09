@@ -14,6 +14,7 @@ import { Socket } from "socket.io-client";
 interface EnemyProps {
   id: string;
   position: [number, number, number];
+
   socketRef: React.RefObject<Socket | null>;
   roomId: string;
 }
@@ -21,9 +22,11 @@ interface EnemyProps {
 export default function Enemy({
   id,
   position = [0, 0.5, -5],
+
   socketRef,
   roomId,
 }: EnemyProps) {
+
   const meshRef = useRef<THREE.Mesh>(null!);
   const enemyRef = useRef<EnemyController | null>(null);
 
@@ -48,7 +51,7 @@ export default function Enemy({
   }, [id, roomId, socketRef]);
 
   return (
-    <RigidBody colliders="cuboid" position={position} mass={0}>
+    <RigidBody colliders="cuboid" position={position} mass={1}>
       {/* Invisible hitbox (or small cube) */}
       <mesh ref={meshRef} visible={true}>
         <boxGeometry args={[1, 0.9, 1.2]} />

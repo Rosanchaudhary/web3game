@@ -42,11 +42,25 @@ export default function Player({ socketRef, position }: PlayerProps) {
     updateMovement(camera);
     updateShooting(camera);
 
-    socketRef.current!.emit("position", {
+    // socketRef.current!.emit("position", {
+    //   roomId: "game-room-1",
+    //   x: body.current?.translation().x,
+    //   y: body.current?.translation().y,
+    //   z: body.current?.translation().z, // z does NOT change
+    // });
+
+    socketRef.current!.emit("drone-game-player-position", {
       roomId: "game-room-1",
-      x: body.current?.translation().x,
-      y: body.current?.translation().y,
-      z: body.current?.translation().z, // z does NOT change
+      position: {
+        x: body.current?.translation().x,
+        y: body.current?.translation().y,
+        z: body.current?.translation().z,
+      },
+      rotation: {
+        x: pitch.current,
+        y: yaw.current,
+        z: 0,
+      },
     });
   });
 
@@ -61,7 +75,7 @@ export default function Player({ socketRef, position }: PlayerProps) {
         lockRotations
         linearDamping={2}
         angularDamping={1}
-        position={[position.x,position.y,position.z]}
+        position={[position.x, position.y, position.z]}
       >
         <CuboidCollider args={[0.3, 0.8, 0.3]} position={[0, 0.8, 0]} />
       </RigidBody>

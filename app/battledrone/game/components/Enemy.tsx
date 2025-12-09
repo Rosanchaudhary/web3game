@@ -14,18 +14,22 @@ import { Socket } from "socket.io-client";
 interface EnemyProps {
   id: string;
   position: [number, number, number];
+  rotation: [number, number, number];
   socketRef: React.RefObject<Socket | null>;
   roomId: string;
 }
 
 export default function Enemy({
   id,
-  position = [0, 0.5, -5],
+  position,
+  rotation,
   socketRef,
   roomId,
 }: EnemyProps) {
+    console.log(rotation);
   const meshRef = useRef<THREE.Mesh>(null!);
   const enemyRef = useRef<EnemyController | null>(null);
+   const groupRef = useRef<THREE.Group>(null!);
 
   // 🔥 Load enemy model (replace with your model path)
   const { scene } = useGLTF("/3d/Robot Enemy Flying Gun.glb");
@@ -37,7 +41,7 @@ export default function Enemy({
     enemyRef.current = enemy;
 
     enemy.onHit = (damage: number) => {
-      socketRef.current?.emit("damage-player", {
+      socketRef.current?.emit("drone-game-damage-player", {
         roomId,
         targetId: id,
         damage,
@@ -48,15 +52,16 @@ export default function Enemy({
   }, [id, roomId, socketRef]);
 
   return (
-    <RigidBody colliders="cuboid" position={position} mass={0}>
-      {/* Invisible hitbox (or small cube) */}
-      <mesh ref={meshRef} visible={true}>
-        <boxGeometry args={[1, 0.9, 1.2]} />
-        <meshBasicMaterial color="white" wireframe />
-      </mesh>
+<RigidBody colliders="cuboid" position={position} mass={0}>
+  <group ref={groupRef} rotation={rotation}>
+    <mesh ref={meshRef} visible>
+      <boxGeometry args={[1, 0.9, 1.2]} />
+      <meshBasicMaterial color="white" wireframe />
+    </mesh>
 
-      {/* Your 3D model */}
-      <primitive object={scene} scale={2} />
-    </RigidBody>
+    <primitive object={scene} scale={2} />
+  </group>
+</RigidBody>
+
   );
 }
