@@ -2,14 +2,8 @@ import { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { RigidBody } from "@react-three/rapier";
 import { useGLTF } from "@react-three/drei";
-
-import {
-  registerEnemy,
-  unregisterEnemy,
-  EnemyController,
-} from "../stores/enemyStore";
-
 import { Socket } from "socket.io-client";
+import { registerEnemy, unregisterEnemy } from "../stores/enemyStore";
 
 interface EnemyProps {
   id: string;
@@ -26,20 +20,14 @@ export default function Enemy({
   socketRef,
   roomId,
 }: EnemyProps) {
-    console.log(rotation);
   const meshRef = useRef<THREE.Mesh>(null!);
-  const enemyRef = useRef<EnemyController | null>(null);
-   const groupRef = useRef<THREE.Group>(null!);
+  const groupRef = useRef<THREE.Group>(null!);
 
-  // 🔥 Load enemy model (replace with your model path)
   const { scene } = useGLTF("/3d/Robot Enemy Flying Gun.glb");
-  scene.position.set(0, -0.9, 0);
+  scene.position.set(0, -0.2, 0);
 
   useEffect(() => {
-    // Register enemy hitbox
     const enemy = registerEnemy(meshRef.current);
-    enemyRef.current = enemy;
-
     enemy.onHit = (damage: number) => {
       socketRef.current?.emit("drone-game-damage-player", {
         roomId,
@@ -51,17 +39,25 @@ export default function Enemy({
     return () => unregisterEnemy(enemy);
   }, [id, roomId, socketRef]);
 
+  // Keep updating position smoothly (NO physics forces)
+  useEffect(() => {
+    if (!groupRef.current) return;
+
+    groupRef.current.position.set(position[0], position[1], position[2]);
+    groupRef.current.rotation.set(rotation[0], rotation[1], rotation[2]);
+  }, [position, rotation]);
+
   return (
-<RigidBody colliders="cuboid" position={position} mass={0}>
-  <group ref={groupRef} rotation={rotation}>
-    <mesh ref={meshRef} visible>
-      <boxGeometry args={[1, 0.9, 1.2]} />
-      <meshBasicMaterial color="white" wireframe />
-    </mesh>
+    <RigidBody colliders="cuboid" type="fixed">
+      <group ref={groupRef}>
+        {/* Visible hitbox */}
+        <mesh ref={meshRef} visible={false}>
+          <boxGeometry args={[1, 2.2, 1.2]} />
+          <meshBasicMaterial color="white" wireframe />
+        </mesh>
 
-    <primitive object={scene} scale={2} />
-  </group>
-</RigidBody>
-
+        <primitive object={scene} scale={2} />
+      </group>
+    </RigidBody>
   );
 }
