@@ -32,7 +32,7 @@ export default function Page() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const socket = io("http://192.168.2.4:3001");
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL); 
     socketRef.current = socket;
 
     socket.emit("join-drone-game-room", { roomId });
