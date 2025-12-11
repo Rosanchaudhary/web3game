@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useAccount } from 'wagmi';
+
 
 // Define grid dimensions
 const ROWS = 20;
@@ -71,7 +71,7 @@ const COLORS: Record<ShapeKey, string> = {
 };
 
 export default function TetrisGame() {
-  const { address } = useAccount();
+
 
   const [started, setStarted] = useState(false);
   const [grid, setGrid] = useState<(number | string)[][]>([]);
@@ -215,16 +215,7 @@ useEffect(() => {
     setScore(0);
   };
 
-  // Save score on game over
-  useEffect(() => {
-    if (gameOver && address) {
-      fetch('/api/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address, score }),
-      });
-    }
-  }, [gameOver, address, score]);
+
 
   const renderGrid = (): (number | string)[][] => {
     const tempGrid = grid.map((r) => [...r]);

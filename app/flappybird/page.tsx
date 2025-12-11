@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAccount } from 'wagmi';
+
 
 const GRAVITY = 0.5;
 const JUMP_STRENGTH = -8;
@@ -16,7 +16,7 @@ interface Pipe {
 }
 
 export default function FlappyBirdGame() {
-  const { address } = useAccount();
+
   const [started, setStarted] = useState(false);
   const [birdY, setBirdY] = useState(250);
   const [velocity, setVelocity] = useState(0);
@@ -106,16 +106,7 @@ export default function FlappyBirdGame() {
     }
   }, [pipes, birdY, gameOver]);
 
-  // Save score to backend (if wallet connected)
-  useEffect(() => {
-    if (gameOver && address) {
-      fetch('/api/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address, score }),
-      });
-    }
-  }, [gameOver, address, score]);
+
 
   // Controls
   useEffect(() => {

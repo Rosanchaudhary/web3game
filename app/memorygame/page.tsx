@@ -1,12 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAccount } from 'wagmi';
+
 
 const emojiSet = ['🐶', '🐱', '🐸', '🐵', '🐼', '🦊', '🐯', '🐰'];
 
 export default function MemoryGame() {
-  const { address } = useAccount();
+
 
   const generateGrid = () => {
     const pairs = [...emojiSet, ...emojiSet];
@@ -71,15 +71,7 @@ export default function MemoryGame() {
   const allMatched = matched.every(Boolean);
 
   // Save score on completion
-  useEffect(() => {
-    if (allMatched && address) {
-      fetch('/api/scores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: address, turns }),
-      });
-    }
-  }, [allMatched, address, turns]);
+
 
   // ---------------- Play screen ----------------
   if (!started) {
