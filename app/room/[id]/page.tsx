@@ -88,9 +88,11 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMessages();
 
-    const socket: Socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
-      transports: ["websocket"],
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
+      transports: ["polling"],
+      upgrade: false,
     });
+
     socketRef.current = socket;
 
     socket.emit("join-room", { roomId, userId });

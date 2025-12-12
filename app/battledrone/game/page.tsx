@@ -18,7 +18,7 @@ type PlayerData = {
   health: number;
   dead: boolean;
   position: Position;
-  rotation:Rotation;
+  rotation: Rotation;
 };
 
 type PlayerMap = Record<string, PlayerData>;
@@ -32,7 +32,11 @@ export default function Page() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL); 
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
+      transports: ["polling"],
+      upgrade: false,
+    });
+    
     socketRef.current = socket;
 
     socket.emit("join-drone-game-room", { roomId });
@@ -46,7 +50,6 @@ export default function Page() {
     });
 
     socket.on("drone-game-player-state", (player) => {
-      
       if (player.id === socket.id) {
         setMe(player);
       } else {
@@ -131,11 +134,7 @@ export default function Page() {
                   enemy.position.y,
                   enemy.position.z,
                 ]}
-                rotation={[
-                  0,
-                  enemy.rotation.y,
-                  enemy.rotation.z,
-                ]}
+                rotation={[0, enemy.rotation.y, enemy.rotation.z]}
                 socketRef={socketRef}
                 roomId={roomId}
               />
