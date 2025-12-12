@@ -106,7 +106,7 @@ export default function PokerGame() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-emerald-900 to-emerald-950 text-white relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-b from-emerald-900 to-emerald-950 text-white relative overflow-hidden">
       <h1 className="text-5xl font-bold mb-6 text-yellow-400 drop-shadow-lg tracking-wide">
         ♠️ Poker Game
       </h1>
@@ -140,7 +140,7 @@ export default function PokerGame() {
       </div>
 
       {/* Table */}
-      <div className="relative w-full max-w-5xl rounded-[3rem] bg-gradient-to-b from-green-700 to-green-900 border-8 border-amber-700 shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center py-10 overflow-hidden">
+      <div className="relative w-full max-w-5xl rounded-[3rem] bg-linear-to-b from-green-700 to-green-900 border-8 border-amber-700 shadow-[0_0_80px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center py-10 overflow-hidden">
         {shuffling && (
           <motion.div
             initial={{ opacity: 0 }}

@@ -14,26 +14,36 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // prevent double click
+    
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
-      if (!res.ok) throw new Error("Login failed");
+      if (!res.ok) throw new Error("Invalid email or password");
 
       const data = await res.json();
 
+      // Store tokens
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
 
-      router.push("/room"); // redirect after login
-    } catch (err) {
-      //setError(err.message);
+      document.cookie = `token=${data.token}; path=/; max-age=86400`;
+      document.cookie = `userId=${data.userId}; path=/; max-age=86400`;
+
+      router.push("/");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -41,7 +51,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center px-6 overflow-hidden text-center">
-      {/* Gradient background effects */}
+      {/* Gradient background */}
       <div className="absolute top-0 left-0 w-full h-full bg-linear-to-b from-indigo-900/40 via-black/80 to-black -z-10" />
       <div className="absolute -top-40 right-40 w-[400px] h-[400px] bg-indigo-500/30 rounded-full blur-3xl -z-10" />
       <div className="absolute -bottom-40 left-40 w-[400px] h-[400px] bg-purple-500/30 rounded-full blur-3xl -z-10" />
@@ -57,6 +67,12 @@ export default function LoginPage() {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {error && (
+            <p className="text-red-400 bg-red-400/10 border border-red-400/20 p-3 rounded-xl text-sm">
+              {error}
+            </p>
+          )}
+
           <div>
             <label className="block text-gray-300 text-sm mb-2">Email</label>
             <input
@@ -65,6 +81,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter your email"
+              required
             />
           </div>
 
@@ -76,16 +93,22 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="Enter your password"
+              required
             />
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={!loading ? { scale: 1.05 } : {}}
+            whileTap={!loading ? { scale: 0.95 } : {}}
             type="submit"
-            className="w-full mt-4 bg-linear-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-xl shadow-lg hover:shadow-indigo-500/30 transition"
+            disabled={loading}
+            className={`w-full mt-4 py-3 rounded-xl shadow-lg transition text-white
+              ${loading 
+                ? "bg-gray-500 cursor-not-allowed" 
+                : "bg-linear-to-r from-indigo-600 to-purple-600 hover:shadow-indigo-500/30"
+              }`}
           >
-            Log In
+            {loading ? "Logging in..." : "Log In"}
           </motion.button>
         </form>
 
