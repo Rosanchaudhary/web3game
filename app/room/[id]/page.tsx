@@ -88,11 +88,7 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMessages();
 
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
-      transports: ["polling"],
-      upgrade: false,
-      path: "/socket.io",
-    });
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL);
 
     socketRef.current = socket;
 

@@ -23,7 +23,7 @@ export default function Enemy({
   const meshRef = useRef<THREE.Mesh>(null!);
   const groupRef = useRef<THREE.Group>(null!);
 
-  const { scene } = useGLTF("/3d/Robot Enemy Flying Gun.glb");
+  const { scene } = useGLTF("/3d/RobotEnemyFlyingGun.glb"); 
   scene.position.set(0, -0.2, 0);
   scene.rotation.set(0, 0.19, 0);
 

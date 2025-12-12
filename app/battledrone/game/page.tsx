@@ -32,10 +32,7 @@ export default function Page() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
-      transports: ["polling"],
-      upgrade: false,
-    });
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL);
     
     socketRef.current = socket;
 

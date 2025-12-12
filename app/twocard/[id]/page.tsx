@@ -91,10 +91,7 @@ export default function TwoPlayerOverlappedPlay() {
   };
 
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
-      transports: ["polling"],
-      upgrade: false,
-    });
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL);
     socketRef.current = socket;
 
     socket.emit("join-room", { roomId, userId });
