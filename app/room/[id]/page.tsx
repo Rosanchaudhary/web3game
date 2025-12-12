@@ -91,6 +91,7 @@ export default function ChatPage() {
     const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
       transports: ["polling"],
       upgrade: false,
+      path: "/socket.io",
     });
 
     socketRef.current = socket;
