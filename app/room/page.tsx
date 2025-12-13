@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { getCookie } from "@/utils/getCookie";
 
 interface Participant {
   userId: string;
@@ -20,15 +21,6 @@ export default function RoomsPage() {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  // Helper to read cookies
-  const getCookie = (key: string) => {
-    if (typeof document === "undefined") return null;
-    const match = document.cookie.match(
-      new RegExp("(^| )" + key + "=([^;]+)")
-    );
-    return match ? match[2] : null;
-  };
-
   const token = getCookie("token");
   const userId = getCookie("userId");
 
@@ -38,13 +30,10 @@ export default function RoomsPage() {
 
       if (!token) return setRooms([]);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/rooms/my`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rooms/my`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
 
       if (!res.ok) return setRooms([]);
 
@@ -82,13 +71,10 @@ export default function RoomsPage() {
   async function joinRoom(roomId: string) {
     if (!token) return;
 
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/join`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/join`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     fetchRooms();
   }
@@ -122,9 +108,7 @@ export default function RoomsPage() {
             <p className="text-gray-400 text-center">No rooms yet.</p>
           ) : (
             rooms.map((room) => {
-              const joined = room.participants.some(
-                (p) => p.userId === userId
-              );
+              const joined = room.participants.some((p) => p.userId === userId);
 
               return (
                 <div
