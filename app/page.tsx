@@ -6,6 +6,12 @@ import { Brain, Gamepad2, Blocks, Bird } from "lucide-react";
 
 const games = [
   {
+    title: "Black Jack",
+    description: "Win and get reward",
+    route: "/blackjack",
+    icon: Brain,
+  },
+  {
     title: "Memory Game",
     description: "Flip cards, match pairs, and win ETH rewards.",
     route: "/memorygame",
@@ -13,7 +19,8 @@ const games = [
   },
   {
     title: "Simon Arcade",
-    description: "Repeat the sequence and test your reflexes for on-chain prizes.",
+    description:
+      "Repeat the sequence and test your reflexes for on-chain prizes.",
     route: "/simon",
     icon: Gamepad2,
   },
@@ -37,14 +44,18 @@ const games = [
   },
   {
     title: "Mario Platformer",
-    description: "Run, jump, and collect coins in this retro-style platformer adventure.",
+    description:
+      "Run, jump, and collect coins in this retro-style platformer adventure.",
     route: "/mario",
     icon: Blocks,
   },
+  {
+    title: "Battle Drone",
+    description: "Multiplayer RPG",
+    route: "/battledrone",
+    icon: Brain,
+  },
 ];
-
-
-
 
 export default function Home() {
   return (
@@ -65,8 +76,9 @@ export default function Home() {
           Bet Games 🎮
         </h1>
         <p className="text-gray-300 text-lg leading-relaxed mb-10">
-          Play. Bet. Win. Connect your MetaMask wallet and compete in fun, on-chain games using Ether.
-          Earn rewards, prove your skill, and climb the leaderboard in our Web3 arcade.
+          Play. Bet. Win. Connect your MetaMask wallet and compete in fun,
+          on-chain games using Ether. Earn rewards, prove your skill, and climb
+          the leaderboard in our Web3 arcade.
         </p>
         <motion.div
           whileHover={{ scale: 1.05 }}
@@ -78,7 +90,10 @@ export default function Home() {
       </motion.section>
 
       {/* Games Section */}
-      <section id="games" className="mt-20 grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-5xl">
+      <section
+        id="games"
+        className="mt-20 grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-5xl"
+      >
         {games.map((game, i) => {
           const Icon = game.icon;
           return (
