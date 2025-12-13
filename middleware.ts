@@ -13,5 +13,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/room/:path*", "/twocard/:path*", "/dashboard/:path*"], // protected routes
+    matcher: ["/room/:path*", "/twocard/:path*", "/blackjack/:path*", "/dashboard/:path*"], // protected routes
 };
