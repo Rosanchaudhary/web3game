@@ -253,7 +253,7 @@ export default function BreakoutCanvas() {
       ref={canvasRef}
       width={GAME_WIDTH}
       height={GAME_HEIGHT}
-      className="border border-gray-700 rounded-lg bg-gradient-to-b from-gray-900 to-black shadow-lg cursor-pointer"
+      className="border border-gray-700 rounded-lg bg-linear-to-b from-gray-900 to-black shadow-lg cursor-pointer"
     />
 
     {/* RIGHT — GAME UI */}
@@ -262,7 +262,7 @@ export default function BreakoutCanvas() {
       <motion.h1
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-4xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
+        className="text-4xl font-bold bg-linear-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
       >
         Breakout
       </motion.h1>
