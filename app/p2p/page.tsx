@@ -26,9 +26,14 @@ export default function WebRTCVideoCall() {
   // Create new RTCPeerConnection + media
   // =====================================================================
   const initPeerConnection = async () => {
+    if (typeof window === "undefined") return;
+    if (!navigator.mediaDevices) {
+      console.error("MediaDevices not available");
+      return;
+    }
+
     console.log("🔄 Creating new peer connection");
 
-    // Camera + mic
     localStream.current = await navigator.mediaDevices.getUserMedia({
       video: true,
       audio: true,
@@ -38,35 +43,29 @@ export default function WebRTCVideoCall() {
       localVideoRef.current.srcObject = localStream.current;
     }
 
-    // Prepare remote stream
     remoteStream.current = new MediaStream();
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = remoteStream.current;
     }
 
-    // Create PeerConnection
     pc.current = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
 
-    // Add local tracks
     localStream.current.getTracks().forEach((track) => {
       pc.current!.addTrack(track, localStream.current!);
     });
 
-    // Handle remote tracks
     pc.current.ontrack = (event) => {
       event.streams[0].getTracks().forEach((track) => {
         remoteStream.current!.addTrack(track);
       });
     };
 
-    // ICE sending
     pc.current.onicecandidate = (e) => {
       if (e.candidate && activePeerId.current) {
         socketRef.current!.emit("webrtc-ice", {
           targetId: activePeerId.current,
-          from: socketRef.current!.id,
           candidate: e.candidate,
         });
       }
@@ -142,7 +141,7 @@ export default function WebRTCVideoCall() {
   // Socket setup + signaling logic
   // =====================================================================
   useEffect(() => {
-    const socket = io("http://192.168.2.4:3001");
+    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL);
     socketRef.current = socket;
 
     // Join room
