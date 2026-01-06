@@ -7,20 +7,20 @@ export default function Home() {
       <header className="flex items-center justify-between px-6 md:px-20 py-6">
         <div className="text-lg font-semibold">Roshan</div>
         <nav className="hidden md:flex space-x-6 text-sm text-gray-300">
-          <a href="#about-me" className="hover:text-accent">
+          <a href="#about-me" className="hover:text-[#C778DD]">
             about-me
           </a>
-          <a href="#projects" className="hover:text-accent">
+          <a href="#projects" className="hover:text-[#C778DD]">
             works
           </a>
-          <a href="#contacts" className="hover:text-accent">
+          <a href="#contacts" className="hover:text-[#C778DD]">
             contacts
           </a>
-          <a href="#skills" className="hover:text-accent">
+          <a href="#skills" className="hover:text-[#C778DD]">
             skills
           </a>
 
-          <span className="text-accent">EN</span>
+          <span className="text-[#C778DD]">EN</span>
         </nav>
       </header>
 
@@ -28,18 +28,18 @@ export default function Home() {
       <section className="flex flex-col-reverse md:flex-row items-center justify-between gap-12 px-6 md:px-20 py-20">
         <div className="max-w-lg">
           <h1 className="text-3xl leading-snug">
-            Roshan is a<span className="text-accent">Computer Engineer</span>
+            Roshan is a<span className="text-[#C778DD]">Computer Engineer</span>
             and
-            <span className="text-accent">Full-Stack Developer</span>
+            <span className="text-[#C778DD]">Full-Stack Developer</span>
           </h1>
 
-          <p className="mt-6 text-sm text-textMuted">
+          <p className="mt-6 text-sm text-[#ABB2BF]">
             Building AI-driven SaaS solutions and high-performance web
             experiences with 4+ years of professional expertise.
           </p>
           <a
             href="#contacts"
-            className="mt-6 border border-accent px-5 py-2 text-sm hover:bg-accent hover:text-bg transition hover:shadow-[0_0_20px_#C778DD]"
+            className="mt-6 border border-[#C778DD] px-5 py-2 text-sm hover:bg-[#C778DD] hover:text-bg transition hover:shadow-[0_0_20px_#C778DD]"
           >
             Contact me →
           </a>
@@ -53,17 +53,17 @@ export default function Home() {
             src="/images/image.png"
             className="w-72 md:w-80 rounded grayscale hover:grayscale-0 transition"
           />
-          <div className="mt-3 flex items-center gap-2 border border-textMuted px-3 py-2 text-xs text-textMuted">
-            <span className="h-2 w-2 rounded-full bg-accent"></span>
+          <div className="mt-3 flex items-center gap-2 border border-[#ABB2BF] px-3 py-2 text-xs text-[#ABB2BF]">
+            <span className="h-2 w-2 rounded-full bg-[#C778DD]"></span>
             Currently working on Portfolio
           </div>
         </div>
       </section>
 
       {/*<!-- Quote */}
-      <section className="mx-6 md:mx-auto my-16 max-w-xl border border-textMuted px-6 py-6 text-center">
+      <section className="mx-6 md:mx-auto my-16 max-w-xl border border-[#ABB2BF] px-6 py-6 text-center">
         <p>“ With great power comes great electricity bill ”</p>
-        <span className="mt-3 block text-textMuted">- Dr. Who</span>
+        <span className="mt-3 block text-[#ABB2BF]">- Dr. Who</span>
       </section>
 
       {/*<!-- Projects */}
@@ -71,13 +71,13 @@ export default function Home() {
         {/*<!-- Title */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl text-accent">#projects</h2>
-            <div className="h-px w-32 md:w-64 bg-accent opacity-50"></div>
+            <h2 className="text-xl text-[#C778DD]">#projects</h2>
+            <div className="h-px w-32 md:w-64 bg-[#C778DD] opacity-50"></div>
           </div>
 
           <a
             href="#"
-            className="text-xs text-textMuted hover:text-accent transition"
+            className="text-xs text-[#ABB2BF] hover:text-[#C778DD] transition"
           >
             View all →
           </a>
@@ -86,7 +86,7 @@ export default function Home() {
         {/*<!-- Cards */}
         <div className="grid md:grid-cols-3 gap-6">
           {/*<!-- Card */}
-          <div className="border border-textMuted">
+          <div className="border border-[#ABB2BF]">
             <Image
               height={100}
               width={100}
@@ -96,24 +96,24 @@ export default function Home() {
               className="h-40 w-full object-cover"
             />
 
-            <div className="p-4 border-t border-textMuted">
-              <p className="text-xs text-textMuted mb-2">
+            <div className="p-4 border-t border-[#ABB2BF]">
+              <p className="text-xs text-[#ABB2BF] mb-2">
                 Next Express Mongo Langchain
               </p>
 
               <h3 className="text-base mb-1">Hire Smart</h3>
-              <p className="text-xs text-textMuted mb-4">Personal Co Worker</p>
+              <p className="text-xs text-[#ABB2BF] mb-4">Personal Co Worker</p>
 
               <div className="flex gap-3">
                 <a
                   href="https://www.hireharry.ai/"
-                  className="border border-accent px-3 py-1 text-xs hover:bg-accent hover:text-bg transition"
+                  className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-bg transition"
                 >
                   Live ⇀
                 </a>
                 <a
                   href="https://www.hireharry.ai/"
-                  className="border border-textMuted px-3 py-1 text-xs hover:border-accent hover:text-accent transition"
+                  className="border border-[#ABB2BF] px-3 py-1 text-xs hover:border-[#C778DD] hover:text-[#C778DD] transition"
                 >
                   Cached →
                 </a>
@@ -122,7 +122,7 @@ export default function Home() {
           </div>
 
           {/*<!-- Card */}
-          {/*<!-- <div className="border border-textMuted">
+          {/*<!-- <div className="border border-[#ABB2BF]">
           <iImage
           height={100}
           width={100}
@@ -132,18 +132,18 @@ export default function Home() {
             className="h-40 w-full object-cover"
           />
 
-          <div className="p-4 border-t border-textMuted">
-            <p className="text-xs text-textMuted mb-2">
+          <div className="p-4 border-t border-[#ABB2BF]">
+            <p className="text-xs text-[#ABB2BF] mb-2">
               React Express Discord.js Node.js
             </p>
 
             <h3 className="text-base mb-1">ProtectX</h3>
-            <p className="text-xs text-textMuted mb-4">Discord anti-crash bot</p>
+            <p className="text-xs text-[#ABB2BF] mb-4">Discord anti-crash bot</p>
 
             <div className="flex gap-3">
               <a
                 href="#"
-                className="border border-accent px-3 py-1 text-xs hover:bg-accent hover:text-bg transition"
+                className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-bg transition"
               >
                 Live ⇀
               </a>
@@ -152,7 +152,7 @@ export default function Home() {
         </div> */}
 
           {/*<!-- Card */}
-          {/*<!-- <div className="border border-textMuted">
+          {/*<!-- <div className="border border-[#ABB2BF]">
           <iImage
           height={100}
           width={100}
@@ -162,18 +162,18 @@ export default function Home() {
             className="h-40 w-full object-cover"
           />
 
-          <div className="p-4 border-t border-textMuted">
-            <p className="text-xs text-textMuted mb-2">CSS Express Node.js</p>
+          <div className="p-4 border-t border-[#ABB2BF]">
+            <p className="text-xs text-[#ABB2BF] mb-2">CSS Express Node.js</p>
 
             <h3 className="text-base mb-1">Kahoot Answers Viewer</h3>
-            <p className="text-xs text-textMuted mb-4">
+            <p className="text-xs text-[#ABB2BF] mb-4">
               Get answers to your kahoot quiz
             </p>
 
             <div className="flex gap-3">
               <a
                 href="#"
-                className="border border-accent px-3 py-1 text-xs hover:bg-accent hover:text-bg transition"
+                className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-bg transition"
               >
                 Live ⇀
               </a>
@@ -187,8 +187,8 @@ export default function Home() {
       <section id="skills" className="px-6 md:px-20 py-20">
         {/*<!-- Title */}
         <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-xl text-accent">#skills</h2>
-          <div className="h-px flex-1 bg-accent opacity-50"></div>
+          <h2 className="text-xl text-[#C778DD]">#skills</h2>
+          <div className="h-px flex-1 bg-[#C778DD] opacity-50"></div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
@@ -196,47 +196,47 @@ export default function Home() {
           <div className="relative hidden md:block">
             {/*<!-- dots */}
             <div className="grid grid-cols-4 gap-2 absolute top-0 left-0">
-              <span className="w-1 h-1 bg-textMuted"></span>
-              <span className="w-1 h-1 bg-textMuted"></span>
-              <span className="w-1 h-1 bg-textMuted"></span>
-              <span className="w-1 h-1 bg-textMuted"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
             </div>
 
             {/*<!-- squares */}
-            <div className="absolute top-24 left-16 w-16 h-16 border border-accent"></div>
-            <div className="absolute top-44 left-4 w-10 h-10 border border-textMuted"></div>
-            <div className="absolute top-60 left-32 w-12 h-12 border border-textMuted"></div>
+            <div className="absolute top-24 left-16 w-16 h-16 border border-[#C778DD]"></div>
+            <div className="absolute top-44 left-4 w-10 h-10 border border-[#ABB2BF]"></div>
+            <div className="absolute top-60 left-32 w-12 h-12 border border-[#ABB2BF]"></div>
           </div>
 
-          {/*<!-- Skills cards */}
+          {/*<!-- Skills [#2F343F]s */}
           <div className="grid sm:grid-cols-2 gap-4">
             {/*<!-- Card */}
-            <div className="border border-textMuted p-3">
+            <div className="border border-[#ABB2BF] p-3">
               <h3 className="text-sm mb-2">Languages</h3>
-              <p className="text-xs text-textMuted">
+              <p className="text-xs text-[#ABB2BF]">
                 TypeScript JavaScript
                 <br />
                 Python Dart
               </p>
-              <p className="text-xs text-textMuted">
+              <p className="text-xs text-[#ABB2BF]">
                 C C++
                 <br />
                 Rust
               </p>
             </div>
 
-            <div className="border border-textMuted p-3">
+            <div className="border border-[#ABB2BF] p-3">
               <h3 className="text-sm mb-2">Databases</h3>
-              <p className="text-xs text-textMuted">
+              <p className="text-xs text-[#ABB2BF]">
                 SQLite PostgreSQL
                 <br />
                 Mongo
               </p>
             </div>
 
-            <div className="border border-textMuted p-3">
+            <div className="border border-[#ABB2BF] p-3">
               <h3 className="text-sm mb-2">Tools</h3>
-              <p className="text-xs text-textMuted">
+              <p className="text-xs text-[#ABB2BF]">
                 VSCode Neovim Linux
                 <br />
                 Figma XFCE Arch
@@ -245,18 +245,18 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="border border-textMuted p-3">
+            <div className="border border-[#ABB2BF] p-3">
               <h3 className="text-sm mb-2">Other</h3>
-              <p className="text-xs text-textMuted">
+              <p className="text-xs text-[#ABB2BF]">
                 HTML CSS JS SCSS
                 <br />
                 REST Jinja
               </p>
             </div>
 
-            <div className="border border-textMuted p-3 sm:col-span-2">
+            <div className="border border-[#ABB2BF] p-3 sm:col-span-2">
               <h3 className="text-sm mb-2">Frameworks</h3>
-              <p className="text-xs text-textMuted">
+              <p className="text-xs text-[#ABB2BF]">
                 React Next.js
                 <br />
                 Django
@@ -271,13 +271,13 @@ export default function Home() {
       <section id="about-me" className="px-6 md:px-20 py-20">
         {/*<!-- Title */}
         <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-xl text-accent">#about-me</h2>
-          <div className="h-px flex-1 bg-accent opacity-50"></div>
+          <h2 className="text-xl text-[#C778DD]">#about-me</h2>
+          <div className="h-px flex-1 bg-[#C778DD] opacity-50"></div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/*<!-- Text */}
-          <div className="text-sm text-textMuted leading-relaxed space-y-4 max-w-lg">
+          <div className="text-sm text-[#ABB2BF] leading-relaxed space-y-4 max-w-lg">
             <p>Hello, I’m Roshan!</p>
             <p>
               I am a Computer Engineer and Full-Stack Developer based in Nepal,
@@ -296,7 +296,7 @@ export default function Home() {
 
             <a
               href="#"
-              className="inline-block mt-4 border border-accent px-5 py-2 text-sm text-white hover:bg-accent hover:text-bg transition hover:shadow-[0_0_20px_#C778DD]"
+              className="inline-block mt-4 border border-[#C778DD] px-5 py-2 text-sm text-white hover:bg-[#C778DD] hover:text-bg transition hover:shadow-[0_0_20px_#C778DD]"
             >
               Read more →
             </a>
@@ -306,10 +306,10 @@ export default function Home() {
           <div className="relative hidden md:block">
             {/*<!-- dots */}
             <div className="grid grid-cols-4 gap-2 absolute top-4 right-12">
-              <span className="w-1 h-1 bg-textMuted"></span>
-              <span className="w-1 h-1 bg-textMuted"></span>
-              <span className="w-1 h-1 bg-textMuted"></span>
-              <span className="w-1 h-1 bg-textMuted"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
+              <span className="w-1 h-1 bg-[#ABB2BF]"></span>
             </div>
 
             {/*<!-- image */}
@@ -323,8 +323,8 @@ export default function Home() {
             />
 
             {/*<!-- squares */}
-            <div className="absolute -top-6 -left-6 w-16 h-16 border border-accent"></div>
-            <div className="absolute bottom-4 -right-4 w-10 h-10 border border-textMuted"></div>
+            <div className="absolute -top-6 -left-6 w-16 h-16 border border-[#C778DD]"></div>
+            <div className="absolute bottom-4 -right-4 w-10 h-10 border border-[#ABB2BF]"></div>
           </div>
         </div>
       </section>
@@ -334,13 +334,13 @@ export default function Home() {
       <section id="contacts" className="px-6 md:px-20 py-20">
         {/*<!-- Title */}
         <div className="flex items-center gap-4 mb-12">
-          <h2 className="text-xl text-accent">#contacts</h2>
-          <div className="h-px flex-1 bg-accent opacity-50"></div>
+          <h2 className="text-xl text-[#C778DD]">#contacts</h2>
+          <div className="h-px flex-1 bg-[#C778DD] opacity-50"></div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-start">
           {/*<!-- Left text */}
-          <div className="text-sm text-textMuted max-w-md leading-relaxed">
+          <div className="text-sm text-[#ABB2BF] max-w-md leading-relaxed">
             <p>
               I’m interested in freelance opportunities. However,
               <br />
@@ -350,12 +350,12 @@ export default function Home() {
             </p>
           </div>
 
-          {/*<!-- Contact card */}
+          {/*<!-- Contact [#2F343F] */}
 
-          <div className="border border-textMuted p-4 w-fit">
+          <div className="border border-[#ABB2BF] p-4 w-fit">
             <h3 className="text-sm mb-3">Message me here</h3>
 
-            <ul className="space-y-2 text-xs text-textMuted">
+            <ul className="space-y-2 text-xs text-[#ABB2BF]">
               <li className="flex items-center gap-2">
                 {/*<!-- Discord icon */}
                 <span>💬</span>
@@ -372,7 +372,7 @@ export default function Home() {
       </section>
 
       {/*<!-- Footer */}
-      <footer className="border-t border-textMuted px-6 md:px-20 py-8 text-sm text-textMuted">
+      <footer className="border-t border-[#ABB2BF] px-6 md:px-20 py-8 text-sm text-[#ABB2BF]">
         <div className="flex flex-col md:flex-row justify-between gap-6">
           {/*<!-- Left */}
           <div>
@@ -387,13 +387,13 @@ export default function Home() {
           <div>
             <h4 className="text-white mb-2">Media</h4>
             <div className="flex gap-4 text-lg">
-              <a href="#" className="hover:text-accent transition">
+              <a href="#" className="hover:text-[#C778DD] transition">
                 🐙
               </a>
-              <a href="#" className="hover:text-accent transition">
+              <a href="#" className="hover:text-[#C778DD] transition">
                 🐦
               </a>
-              <a href="#" className="hover:text-accent transition">
+              <a href="#" className="hover:text-[#C778DD] transition">
                 💬
               </a>
             </div>
