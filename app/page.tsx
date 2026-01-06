@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function Home() {
   return (
     <main className="bg-[#282C33] text-white font-mono">
-      {/*<!-- Navbar */}
+      {/* Navbar */}
       <header className="flex items-center justify-between px-6 md:px-20 py-6">
         <div className="text-lg font-semibold">Roshan</div>
         <nav className="hidden md:flex space-x-6 text-sm text-gray-300">
@@ -24,7 +24,7 @@ export default function Home() {
         </nav>
       </header>
 
-      {/*<!-- Hero */}
+      {/* Hero */}
       <section className="flex flex-col-reverse md:flex-row items-center justify-between gap-12 px-6 md:px-20 py-20">
         <div className="max-w-lg">
           <h1 className="text-3xl leading-snug">
@@ -63,15 +63,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/*<!-- Quote */}
+      {/* Quote */}
       <section className="mx-6 md:mx-auto my-16 max-w-xl border border-[#ABB2BF] px-6 py-6 text-center">
         <p>“ With great power comes great electricity bill ”</p>
         <span className="mt-3 block text-[#ABB2BF]">- Dr. Who</span>
       </section>
 
-      {/*<!-- Projects */}
+      {/* Projects */}
       <section id="projects" className="px-6 md:px-20 py-20">
-        {/*<!-- Title */}
+        {/* Title */}
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
             <h2 className="text-xl text-[#C778DD]">#projects</h2>
@@ -86,9 +86,9 @@ export default function Home() {
           </a>
         </div>
 
-        {/*<!-- Cards */}
+        {/* Cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          {/*<!-- Card */}
+          {/* Card */}
           <div className="border border-[#ABB2BF]">
             <Image
               height={100}
@@ -123,8 +123,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/*<!-- Card */}
-          {/*<!-- <div className="border border-[#ABB2BF]">
+          {/* Card */}
+          {/* <div className="border border-[#ABB2BF]">
           <iImage
           height={100}
           width={100}
@@ -153,8 +153,8 @@ export default function Home() {
           </div>
         </div> */}
 
-          {/*<!-- Card */}
-          {/*<!-- <div className="border border-[#ABB2BF]">
+          {/* Card */}
+          {/* <div className="border border-[#ABB2BF]">
           <iImage
           height={100}
           width={100}
@@ -185,18 +185,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/*<!-- Skills */}
+      {/* Skills */}
       <section id="skills" className="px-6 md:px-20 py-20">
-        {/*<!-- Title */}
+        {/* Title */}
         <div className="flex items-center gap-4 mb-12">
           <h2 className="text-xl text-[#C778DD]">#skills</h2>
           <div className="h-px flex-1 bg-[#C778DD] opacity-50"></div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
-          {/*<!-- Left decorations */}
+          {/* Left decorations */}
           <div className="relative hidden md:block">
-            {/*<!-- dots */}
+            {/* dots */}
             <div className="grid grid-cols-4 gap-2 absolute top-0 left-0">
               <span className="w-1 h-1 bg-[#ABB2BF]"></span>
               <span className="w-1 h-1 bg-[#ABB2BF]"></span>
@@ -204,15 +204,15 @@ export default function Home() {
               <span className="w-1 h-1 bg-[#ABB2BF]"></span>
             </div>
 
-            {/*<!-- squares */}
+            {/* squares */}
             <div className="absolute top-24 left-16 w-16 h-16 border border-[#C778DD]"></div>
             <div className="absolute top-44 left-4 w-10 h-10 border border-[#ABB2BF]"></div>
             <div className="absolute top-60 left-32 w-12 h-12 border border-[#ABB2BF]"></div>
           </div>
 
-          {/*<!-- Skills [#2F343F]s */}
+          {/* Skills [#2F343F]s */}
           <div className="grid sm:grid-cols-2 gap-4">
-            {/*<!-- Card */}
+            {/* Card */}
             <div className="border border-[#ABB2BF] p-3">
               <h3 className="text-sm mb-2">Languages</h3>
               <p className="text-xs text-[#ABB2BF]">
@@ -269,16 +269,16 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/*<!-- About */}
+      {/* About */}
       <section id="about-me" className="px-6 md:px-20 py-20">
-        {/*<!-- Title */}
+        {/* Title */}
         <div className="flex items-center gap-4 mb-12">
           <h2 className="text-xl text-[#C778DD]">#about-me</h2>
           <div className="h-px flex-1 bg-[#C778DD] opacity-50"></div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/*<!-- Text */}
+          {/* Text */}
           <div className="text-sm text-[#ABB2BF] leading-relaxed space-y-4 max-w-lg">
             <p>Hello, I’m Roshan!</p>
             <p>
@@ -304,9 +304,9 @@ export default function Home() {
             </a>
           </div>
 
-          {/*<!-- Decoration / Image */}
+          {/* Decoration / Image */}
           <div className="relative hidden md:block">
-            {/*<!-- dots */}
+            {/* dots */}
             <div className="grid grid-cols-4 gap-2 absolute top-4 right-12">
               <span className="w-1 h-1 bg-[#ABB2BF]"></span>
               <span className="w-1 h-1 bg-[#ABB2BF]"></span>
@@ -314,7 +314,7 @@ export default function Home() {
               <span className="w-1 h-1 bg-[#ABB2BF]"></span>
             </div>
 
-            {/*<!-- image */}
+            {/* image */}
             <Image
               height={100}
               width={100}
@@ -323,7 +323,7 @@ export default function Home() {
               className="w-72 rounded grayscale hover:grayscale-0 transition"
             />
 
-            {/*<!-- squares */}
+            {/* squares */}
             <div className="absolute -top-6 -left-6 w-16 h-16 border border-[#C778DD]"></div>
             <div className="absolute bottom-4 -right-4 w-10 h-10 border border-[#ABB2BF]"></div>
           </div>
@@ -331,16 +331,16 @@ export default function Home() {
       </section>
       {/*  */}
 
-      {/*<!-- Contacts */}
+      {/* Contacts */}
       <section id="contacts" className="px-6 md:px-20 py-20">
-        {/*<!-- Title */}
+        {/* Title */}
         <div className="flex items-center gap-4 mb-12">
           <h2 className="text-xl text-[#C778DD]">#contacts</h2>
           <div className="h-px flex-1 bg-[#C778DD] opacity-50"></div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12 items-start">
-          {/*<!-- Left text */}
+          {/* Left text */}
           <div className="text-sm text-[#ABB2BF] max-w-md leading-relaxed">
             <p>
               I’m interested in freelance opportunities. However,
@@ -351,19 +351,19 @@ export default function Home() {
             </p>
           </div>
 
-          {/*<!-- Contact [#2F343F] */}
+          {/* Contact [#2F343F] */}
 
           <div className="border border-[#ABB2BF] p-4 w-fit">
             <h3 className="text-sm mb-3">Message me here</h3>
 
             <ul className="space-y-2 text-xs text-[#ABB2BF]">
               <li className="flex items-center gap-2">
-                {/*<!-- Discord icon */}
+                {/* Discord icon */}
                 <span>💬</span>
                 rosanchaudhary
               </li>
               <li className="flex items-center gap-2">
-                {/*<!-- Email icon */}
+                {/* Email icon */}
                 <span>✉️</span>
                 chaudharyroshan2020@gmail.com
               </li>
