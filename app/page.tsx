@@ -1,6 +1,49 @@
 import Image from "next/image";
 
 export default function Home() {
+  const games = [
+    {
+      name: "Snake",
+      image: "/images/snake.png",
+      tech: "JavaScript • Canvas • Game Loop",
+      description:
+        "Classic Snake game built with a custom game loop, grid-based movement, collision detection, and increasing difficulty over time.",
+      link: "https://api.chaudharyroshan.com/game/snake",
+    },
+    {
+      name: "Simon",
+      image: "/images/simon.png",
+      tech: "JavaScript • Web Audio • State Management",
+      description:
+        "Memory-based Simon game featuring sequence generation, audio-visual feedback, and progressive difficulty scaling.",
+      link: "https://api.chaudharyroshan.com/game/simon",
+    },
+    {
+      name: "Endless Runner",
+      image: "/images/endlessrunner.png",
+      tech: "TypeScript • Canvas • Performance",
+      description:
+        "Fast-paced endless runner with procedural obstacle spawning, physics-based movement, and performance-optimized rendering.",
+      link: "https://api.chaudharyroshan.com/game/endlessrunner",
+    },
+    {
+      name: "Blackjack",
+      image: "/images/blackjack.png",
+      tech: "JavaScript • Game Logic • Probability",
+      description:
+        "Browser-based Blackjack game implementing full card-deck logic, betting system, and win–loss probability handling.",
+      link: "https://api.chaudharyroshan.com/game/blackjack",
+    },
+    // {
+    //   name: "Roulette",
+    //   image: "/images/games/roulette.png",
+    //   tech: "JavaScript • Animations • Math",
+    //   description:
+    //     "Interactive Roulette game with realistic wheel animation, bet evaluation logic, and payout calculations.",
+    //   link: "#",
+    // },
+  ];
+
   return (
     <main className="bg-[#282C33] text-white font-mono">
       {/* Navbar */}
@@ -50,12 +93,13 @@ export default function Home() {
 
         <div className="relative">
           <Image
-            height={100}
-            width={100}
-            alt=""
             src="/images/image.png"
-            className="w-72 md:w-80 rounded grayscale hover:grayscale-0 transition"
+            alt="Roshan portrait"
+            width={320}
+            height={400}
+            priority
           />
+
           <div className="mt-3 flex items-center gap-2 border border-[#ABB2BF] px-3 py-2 text-xs text-[#ABB2BF]">
             <span className="h-2 w-2 rounded-full bg-[#C778DD]"></span>
             Currently working on Portfolio
@@ -182,6 +226,52 @@ export default function Home() {
             </div>
           </div>
         </div> */}
+        </div>
+      </section>
+
+      {/* Games */}
+      <section id="games" className="px-6 md:px-20 py-20">
+        {/* Title */}
+        <div className="flex items-center gap-4 mb-12">
+          <h2 className="text-xl text-[#C778DD]">#games</h2>
+          <div className="h-px flex-1 bg-[#C778DD] opacity-50"></div>
+        </div>
+
+        {/* Game List */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {games.map((game) => (
+            <div
+              key={game.name}
+              className="border border-[#ABB2BF] hover:border-[#C778DD] transition"
+            >
+              <Image
+                src={game.image}
+                alt={`${game.name} game preview`}
+                width={400}
+                height={240}
+                className="h-40 w-full object-cover"
+              />
+
+              <div className="p-4 border-t border-[#ABB2BF]">
+                <p className="text-xs text-[#ABB2BF] mb-2">{game.tech}</p>
+
+                <h3 className="text-base mb-1">{game.name}</h3>
+
+                <p className="text-xs text-[#ABB2BF] mb-4">
+                  {game.description}
+                </p>
+
+                <a
+                  href={game.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-[#2F343F] transition"
+                >
+                  Play ⇀
+                </a>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -371,7 +461,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
 
       {/* Contacts */}
       <section id="contacts" className="px-6 md:px-20 py-20">
