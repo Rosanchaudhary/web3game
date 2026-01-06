@@ -28,21 +28,24 @@ export default function Home() {
       <section className="flex flex-col-reverse md:flex-row items-center justify-between gap-12 px-6 md:px-20 py-20">
         <div className="max-w-lg">
           <h1 className="text-3xl leading-snug">
-            Roshan is a<span className="text-[#C778DD]">Computer Engineer</span>
+            Roshan is a{" "}
+            <span className="text-[#C778DD]">Computer Engineer </span>
             and
-            <span className="text-[#C778DD]">Full-Stack Developer</span>
+            <span className="text-[#C778DD]"> Full-Stack Developer </span>
           </h1>
 
           <p className="mt-6 text-sm text-[#ABB2BF]">
             Building AI-driven SaaS solutions and high-performance web
             experiences with 4+ years of professional expertise.
           </p>
-          <a
-            href="#contacts"
-            className="mt-6 border border-[#C778DD] px-5 py-2 text-sm hover:bg-[#C778DD] hover:text-bg transition hover:shadow-[0_0_20px_#C778DD]"
-          >
-            Contact me →
-          </a>
+          <div className=" mt-4">
+            <a
+              href="#contacts"
+              className=" border border-[#C778DD] px-5 py-2 text-sm hover:bg-[#C778DD] hover:text-[#2F343F] transition hover:shadow-[0_0_20px_#C778DD]"
+            >
+              Contact me →
+            </a>
+          </div>
         </div>
 
         <div className="relative">
@@ -90,7 +93,6 @@ export default function Home() {
             <Image
               height={100}
               width={100}
-     
               src="/images/harry.png"
               alt="Project"
               className="h-40 w-full object-cover"
@@ -107,7 +109,7 @@ export default function Home() {
               <div className="flex gap-3">
                 <a
                   href="https://www.hireharry.ai/"
-                  className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-bg transition"
+                  className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-[#2F343F] transition"
                 >
                   Live ⇀
                 </a>
@@ -143,7 +145,7 @@ export default function Home() {
             <div className="flex gap-3">
               <a
                 href="#"
-                className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-bg transition"
+                className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-[#2F343F] transition"
               >
                 Live ⇀
               </a>
@@ -173,7 +175,7 @@ export default function Home() {
             <div className="flex gap-3">
               <a
                 href="#"
-                className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-bg transition"
+                className="border border-[#C778DD] px-3 py-1 text-xs hover:bg-[#C778DD] hover:text-[#2F343F] transition"
               >
                 Live ⇀
               </a>
@@ -282,8 +284,8 @@ export default function Home() {
             <p>
               I am a Computer Engineer and Full-Stack Developer based in Nepal,
               specializing in the MERN stack and AI integration. With over 4
-              years of professional experience, I don&apos;t just build websites—I
-              build scalable digital products.
+              years of professional experience, I don&apos;t just build
+              websites—I build scalable digital products.
             </p>
             <p>
               From developing AI-driven hiring platforms at HireHarry.ai to
@@ -296,7 +298,7 @@ export default function Home() {
 
             <a
               href="#"
-              className="inline-block mt-4 border border-[#C778DD] px-5 py-2 text-sm text-white hover:bg-[#C778DD] hover:text-bg transition hover:shadow-[0_0_20px_#C778DD]"
+              className="inline-block mt-4 border border-[#C778DD] px-5 py-2 text-sm text-white hover:bg-[#C778DD] hover:text-[#2F343F] transition hover:shadow-[0_0_20px_#C778DD]"
             >
               Read more →
             </a>
@@ -316,7 +318,6 @@ export default function Home() {
             <Image
               height={100}
               width={100}
-
               src="/images/image.png"
               alt="About"
               className="w-72 rounded grayscale hover:grayscale-0 transition"
@@ -371,37 +372,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/*<!-- Footer */}
-      <footer className="border-t border-[#ABB2BF] px-6 md:px-20 py-8 text-sm text-[#ABB2BF]">
-        <div className="flex flex-col md:flex-row justify-between gap-6">
-          {/*<!-- Left */}
-          <div>
-            <div className="flex items-center gap-2 text-white">
-              <span className="font-semibold">Roshan</span>
-              <span className="text-xs">chaudharyroshan2020@gmail.com</span>
-            </div>
-            <p className="mt-2 text-xs">MERN Developer</p>
-          </div>
 
-          {/*<!-- Right */}
-          <div>
-            <h4 className="text-white mb-2">Media</h4>
-            <div className="flex gap-4 text-lg">
-              <a href="#" className="hover:text-[#C778DD] transition">
-                🐙
-              </a>
-              <a href="#" className="hover:text-[#C778DD] transition">
-                🐦
-              </a>
-              <a href="#" className="hover:text-[#C778DD] transition">
-                💬
-              </a>
-            </div>
-          </div>
+      {/* Contacts */}
+      <section id="contacts" className="px-6 md:px-20 py-20">
+        <div className="flex items-center gap-4 mb-12">
+          <h2 className="text-xl text-[#C778DD]">#contacts</h2>
+          <div className="h-px flex-1 bg-[#C778DD] opacity-50" />
         </div>
 
-        <p className="mt-8 text-center text-xs opacity-60">
-          © Copyright 2022. Made by Roshan
+        <address className="not-italic text-sm text-[#ABB2BF] space-y-2">
+          <p>Open for freelance and collaboration.</p>
+          <p>💬 rosanchaudhary</p>
+          <p>✉️ chaudharyroshan2020@gmail.com</p>
+        </address>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-[#ABB2BF] px-6 md:px-20 py-8 text-xs text-[#ABB2BF]">
+        <p className="text-center">
+          © {new Date().getFullYear()} Roshan. Built with Next.js.
         </p>
       </footer>
     </main>
